@@ -1,0 +1,6 @@
+.ipynb_checkpoints/
+/.nbgrader.log
+Untitled*.ipynb
+/build
+/dist/
+/envkernel.egg-info/
