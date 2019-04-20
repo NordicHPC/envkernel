@@ -174,7 +174,7 @@ class docker(envkernel):
         argv = [
             os.path.realpath(sys.argv[0]),
             'docker',
-            '--image', args.image,
+            args.image,
             #*[ '--mount={}'.format(x) for x in args.mount],
             *unknown_args,
             args.python,
@@ -195,11 +195,12 @@ class docker(envkernel):
 
     def run(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--image', help='image name')
+        parser.add_argument('image', help='image name')
         parser.add_argument('--mount', '-m', action='append', default=[],
                                 help='mount to set up, format hostDir:containerMountPoint')
         parser.add_argument('--copy-workdir', default=False, action='store_true')
         parser.add_argument('--workdir')
+        parser.add_argument('--pwd', action='store_true')
 
         args, unknown_args = parser.parse_known_args(self.argv)
 
@@ -207,11 +208,12 @@ class docker(envkernel):
         extra_ports = [ ]
 
         # working dir
-        workdir = os.getcwd()
-        if args.workdir:
-            workdir = args.workdir
-        # src = host data, dst=container mountpoint
-        expose_mounts.extend(["--mount", "type=bind,source={},destination={},ro={}{}".format(os.getcwd(), workdir, 'false', ',copy' if args.copy_workdir else '')])
+        if args.pwd or args.workdir:
+            workdir = os.getcwd()
+            if args.workdir:
+                workdir = args.workdir
+            # src = host data, dst=container mountpoint
+            expose_mounts.extend(["--mount", "type=bind,source={},destination={},ro={}{}".format(os.getcwd(), workdir, 'false', ',copy' if args.copy_workdir else '')])
 
         cmd = [
             "docker", "run", "--rm", "-i",
@@ -219,25 +221,21 @@ class docker(envkernel):
             ]
 
         # Parse connection file
-        for i in range(len(unknown_args)):
-            if args.remainder[i] == '-f':
-                json_file = args.remainder[i+1]
-                connection_data = json.load(open(json_file))
-                # Find all the (five) necessary ports
-                for var in ('shell_port', 'iopub_port', 'stdin_port', 'control_port', 'hb_port'):
-                    # Forward each port to itself
-                    port = connection_data[var]
-                    #expose_ports.append((connection_data[var], connection_data[var]))
-                    cmd.extend(['--expose={}'.format(port), "-p", "{}:{}".format(port, port)])
-                # Mount the connection file inside the container
-                extra_mounts.extend(["--mount", "type=bind,source={},destination={},ro={}".format(json_file, json_file, 'false')])
-                #expose_mounts.append(dict(src=json_file, dst=json_file))
+        connection_file = find_connection_file(unknown_args)
+        connection_data = json.load(open(connection_file))
+        # Find all the (five) necessary ports
+        for var in ('shell_port', 'iopub_port', 'stdin_port', 'control_port', 'hb_port'):
+            # Forward each port to itself
+            port = connection_data[var]
+            #expose_ports.append((connection_data[var], connection_data[var]))
+            cmd.extend(['--expose={}'.format(port), "-p", "{}:{}".format(port, port)])
+        # Mount the connection file inside the container
+        extra_mounts.extend(["--mount", "type=bind,source={},destination={},ro={}".format(json_file, json_file, 'false')])
+        #expose_mounts.append(dict(src=json_file, dst=json_file))
 
-                # Change connection_file to bind to all IPs.
-                connection_data['ip'] = '0.0.0.0'
-                open(json_file, 'w').write(json.dumps(connection_data))
-                break
-
+        # Change connection_file to bind to all IPs.
+        connection_data['ip'] = '0.0.0.0'
+        open(connection_file, 'w').write(json.dumps(connection_data))
 
         # Add options to expose the ports
         for port_host, port_container in expose_ports:
@@ -257,7 +255,7 @@ class docker(envkernel):
         #cmd.extend(("--workdir", workdir))
 
         # Process all of our mounts, to do two things:
-        #  Substitute {workdir} with 
+        #  Substitute {workdir} with
         unknown_args.extend(extra_mounts)
         for i, arg in enumerate(unknown_args):
             if '{workdir}' in arg and copy_workdir:
@@ -273,6 +271,7 @@ class docker(envkernel):
                 #
                 newarg = re.sub('src=([^,]+)', 'src='+src, arg) # add in new src
                 newarg = re.sub(',copy', '', newarg)            # remove ,copy
+                unknown_args[i] = newarg
 
         # Image name
         cmd.append(args.image)
@@ -284,7 +283,7 @@ class docker(envkernel):
             ])
 
         # Run...
-        print(cmd)
+        LOG.info('docker: running cmd = %s', printargs(cmd))
         ret = subprocess.call(cmd)
 
         # Clean up all temparary directories
@@ -336,7 +335,7 @@ class singularity(envkernel):
         parser.add_argument('--mount', '-m', action='append', default=[],
                             help='mount to set up, format hostDir:containerMountPoint')
         #parser.add_argument('--copy-pwd', default=False, action='store_true')
-        parser.add_argument('--pwd')
+        parser.add_argument('--pwd', actions='store_true')
         parser.add_argument('--connection-file')
         args, unknown_args = parser.parse_known_args(argv)
         LOG.debug('run: args: %s', args)
@@ -375,7 +374,7 @@ class singularity(envkernel):
             *rest,
             ]
 
-        LOG.debug('run: cmd: %s', cmd)
+        LOG.debug('singularity: running cmd= %s', printargs(cmd))
         subprocess.call(cmd)
 
 def main():
