@@ -85,14 +85,31 @@ class envkernel():
                             help="Install kernel to this prefix")
         parser.add_argument('--replace', action='store_true',
                             help="Replace existing kernel?")
+        parser.add_argument('--python', default='python',
+                            help="Python command to run (default 'python')")
+        parser.add_argument('--kernel_cmd', default='python',
+                            help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
+        parser.add_argument('--language', default='python',
+                            help="Language to put into kernel file (default 'python'"))
         args, unknown_args = parser.parse_known_args(sys.argv[2:])
         LOG.debug('setup: args: %s', args)
         LOG.debug('setup: unknown_args: %s', unknown_args)
+        self.setup_args = args
         self.name = args.name
         self.display_name = args.display_name
         self.user = args.user
         self.prefix = args.prefix
         self.replace = args.replace
+        self.python = args.python
+        if args.kernel_cmd:
+            self.kernel_cmd = args.kernel_cmd.split()
+        else:
+            self.kernel_cmd = [args.python,
+                               "-m",
+                               "ipykernel_launcher",
+                               "-f",
+                               "{connection_file}",
+                               ]
         self.argv = unknown_args
 
     def _get_parser(self):
@@ -108,11 +125,12 @@ class lmod(envkernel):
             self.__class__.__name__, 'run',
             *self.argv,
             '--',
-            'python',
-            "-m",
-            "ipykernel_launcher",
-            "-f",
-            "{connection_file}",
+            #self.setup_args.python,
+            #"-m",
+            #"ipykernel_launcher",
+            #"-f",
+            #"{connection_file}",
+            *self.kernel_cmd,
         ]
         kernel = {
             "argv": argv,
@@ -165,7 +183,6 @@ class docker(envkernel):
     def setup(self):
         super().setup()
         parser = argparse.ArgumentParser()
-        parser.add_argument('--python', default='python')
         parser.add_argument('image')
 
         args, unknown_args = setup_parser.parse_known_args(self.argv)
@@ -174,14 +191,18 @@ class docker(envkernel):
         argv = [
             os.path.realpath(sys.argv[0]),
             'docker',
+            'run',
+            '--connection-file', '{connection_file}'
             args.image,
             #*[ '--mount={}'.format(x) for x in args.mount],
             *unknown_args,
-            args.python,
-            "-m",
-            "ipykernel_launcher",
-            "-f",
-            "{connection_file}",
+            '--',
+            #self.setup_args.python,
+            #"-m",
+            #"ipykernel_launcher",
+            #"-f",
+            #"{connection_file}",
+            *self.kernel_cmd,
         ]
 
         kernel = {
@@ -194,6 +215,7 @@ class docker(envkernel):
                        replace=self.replace, prefix=self.prefix)
 
     def run(self):
+        argv, rest = split_doubledash(self.argv)
         parser = argparse.ArgumentParser()
         parser.add_argument('image', help='image name')
         parser.add_argument('--mount', '-m', action='append', default=[],
@@ -201,6 +223,7 @@ class docker(envkernel):
         parser.add_argument('--copy-workdir', default=False, action='store_true')
         parser.add_argument('--workdir')
         parser.add_argument('--pwd', action='store_true')
+        parser.add_argument('--connection-file')
 
         args, unknown_args = parser.parse_known_args(self.argv)
 
@@ -221,7 +244,7 @@ class docker(envkernel):
             ]
 
         # Parse connection file
-        connection_file = find_connection_file(unknown_args)
+        connection_file = args.connection_file
         connection_data = json.load(open(connection_file))
         # Find all the (five) necessary ports
         for var in ('shell_port', 'iopub_port', 'stdin_port', 'control_port', 'hb_port'):
@@ -280,6 +303,7 @@ class docker(envkernel):
         cmd.extend([
             *unknown_args,
             '--debug',
+            *rest,
             ])
 
         # Run...
@@ -298,7 +322,6 @@ class singularity(envkernel):
         super().setup()
         parser = argparse.ArgumentParser()
         parser.add_argument('image')
-        parser.add_argument('--python', default='python')
         args, unknown_args = parser.parse_known_args(self.argv)
         LOG.debug('setup: args: %s', args)
         LOG.debug('setup: unknown_args: %s', unknown_args)
@@ -311,12 +334,13 @@ class singularity(envkernel):
             #*[ '--mount={}'.format(x) for x in args.mount],
             *unknown_args,
             '--',
-            args.python,
-            "-m",
-            "ipykernel_launcher",
-            "-f",
+            #self.setup_args.python,
+            #"-m",
+            #"ipykernel_launcher",
+            #"-f",
             #"/connection.json",
-            "{connection_file}",
+            #"{connection_file}",
+            *self.kernel_cmd,
         ]
 
         kernel = {
