@@ -1,7 +1,24 @@
 # Switch environments before running Jupyter kernels
 
+Sometimes, one needs to execute Jupyter kernels in a different
+environment.  One could manually adjust the kernelspec files to set
+environment variables or run commands before starting the kernel, but
+envkernel automates this process.
+
 
 ## Installation
+
+```
+pip install https://github.com/AaltoScienceIT/envkernel/archive/master.git
+```
+
+Not currently distributed through other channels, but hopefully this
+will change.  This is a single-file script and can be copied just like
+this.  The script must be available both when a kernel is set up, and
+each time the kernel is started (and currently assumes they are in the
+same location).
+
+
 
 ## General usage and common arguments
 
