@@ -9,7 +9,7 @@ envkernel automates this process.
 ## Installation
 
 ```
-pip install https://github.com/AaltoScienceIT/envkernel/archive/master.git
+pip install https://github.com/AaltoScienceIT/envkernel/archive/master.zip
 ```
 
 Not currently distributed through other channels, but hopefully this
