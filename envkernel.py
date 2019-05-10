@@ -375,6 +375,10 @@ class singularity(envkernel):
 
         # Find connection file and mount it:
         connection_file = args.connection_file
+        # If we mount with --contain, then /tmp is missing and *can't*
+        # have any extra files mounted inside of it.  This means that
+        # we have to relocate the connection file to "/" or somewhere.
+        new_connection_file = "/"os.path.basename(connection_file)
         if False:
             # Re-copy connection file to /tmp
             # Doesn't work now!
@@ -387,12 +391,15 @@ class singularity(envkernel):
         else:
             # enable overlay = yes
             # We can directly mount the connection file in...
-            extra_args.extend(['--bind', connection_file])
+            extra_args.extend(['--bind', connection_file+":"+new_connection_file])
 
         if args.pwd:
             extra_args.extend(['--bind', os.getcwd()])
             extra_args.extend(['--pwd', os.getcwd()])
 
+        # Replace the connection file path with the new location.
+        idx = rest.index(connection_file)
+        rest[idx] = new_connection_file
 
         cmd = [
             'singularity',
