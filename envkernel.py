@@ -90,7 +90,7 @@ class envkernel():
         parser.add_argument('--kernel_cmd', default='python',
                             help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
         parser.add_argument('--language', default='python',
-                            help="Language to put into kernel file (default 'python'"))
+                            help="Language to put into kernel file (default 'python'")
         args, unknown_args = parser.parse_known_args(sys.argv[2:])
         LOG.debug('setup: args: %s', args)
         LOG.debug('setup: unknown_args: %s', unknown_args)
