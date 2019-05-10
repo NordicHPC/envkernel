@@ -81,16 +81,16 @@ class envkernel():
                                   help="Display name of kernel")
         parser.add_argument('--user', action='store_true', default=False,
                             help="Install kernel to user dir")
-        parser.add_argument('--prefix', action='store_true',
+        parser.add_argument('--prefix',
                             help="Install kernel to this prefix")
         parser.add_argument('--replace', action='store_true',
                             help="Replace existing kernel?")
         parser.add_argument('--python', default='python',
                             help="Python command to run (default 'python')")
-        parser.add_argument('--kernel_cmd', default='python',
+        parser.add_argument('--kernel-cmd',
                             help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
         parser.add_argument('--language', default='python',
-                            help="Language to put into kernel file (default 'python'")
+                            help="Language to put into kernel file (default 'python')")
         args, unknown_args = parser.parse_known_args(sys.argv[2:])
         LOG.debug('setup: args: %s', args)
         LOG.debug('setup: unknown_args: %s', unknown_args)
@@ -192,7 +192,7 @@ class docker(envkernel):
             os.path.realpath(sys.argv[0]),
             'docker',
             'run',
-            '--connection-file', '{connection_file}'
+            '--connection-file', '{connection_file}',
             args.image,
             #*[ '--mount={}'.format(x) for x in args.mount],
             *unknown_args,
@@ -359,7 +359,7 @@ class singularity(envkernel):
         parser.add_argument('--mount', '-m', action='append', default=[],
                             help='mount to set up, format hostDir:containerMountPoint')
         #parser.add_argument('--copy-pwd', default=False, action='store_true')
-        parser.add_argument('--pwd', actions='store_true')
+        parser.add_argument('--pwd', action='store_true')
         parser.add_argument('--connection-file')
         args, unknown_args = parser.parse_known_args(argv)
         LOG.debug('run: args: %s', args)
