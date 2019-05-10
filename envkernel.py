@@ -81,6 +81,8 @@ class envkernel():
                                   help="Display name of kernel")
         parser.add_argument('--user', action='store_true', default=False,
                             help="Install kernel to user dir")
+        parser.add_argument('--sys-prefix', action='store_true',
+                            help="Install kernel to this sys.prefix")
         parser.add_argument('--prefix',
                             help="Install kernel to this prefix")
         parser.add_argument('--replace', action='store_true',
@@ -98,7 +100,10 @@ class envkernel():
         self.name = args.name
         self.display_name = args.display_name
         self.user = args.user
-        self.prefix = args.prefix
+        if args.sys_prefix:
+            self.prefix = sys.prefix
+        else:
+            self.prefix = args.prefix
         self.replace = args.replace
         self.python = args.python
         if args.kernel_cmd:
