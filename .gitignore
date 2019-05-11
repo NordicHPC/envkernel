@@ -4,3 +4,4 @@ Untitled*.ipynb
 /build
 /dist/
 /envkernel.egg-info/
+__pycache__/
