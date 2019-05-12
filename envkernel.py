@@ -378,7 +378,7 @@ class singularity(envkernel):
         # If we mount with --contain, then /tmp is missing and *can't*
         # have any extra files mounted inside of it.  This means that
         # we have to relocate the connection file to "/" or somewhere.
-        new_connection_file = "/"os.path.basename(connection_file)
+        new_connection_file = "/"+os.path.basename(connection_file)
         if False:
             # Re-copy connection file to /tmp
             # Doesn't work now!
