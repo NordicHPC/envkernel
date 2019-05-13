@@ -82,11 +82,11 @@ class envkernel():
         parser.add_argument('--user', action='store_true', default=False,
                             help="Install kernel to user dir")
         parser.add_argument('--sys-prefix', action='store_true',
-                            help="Install kernel to this sys.prefix")
+                            help="Install kernel to this Python's sys.prefix")
         parser.add_argument('--prefix',
                             help="Install kernel to this prefix")
         parser.add_argument('--replace', action='store_true',
-                            help="Replace existing kernel?")
+                            help="Replace existing kernel")
         parser.add_argument('--python', default='python',
                             help="Python command to run (default 'python')")
         parser.add_argument('--kernel-cmd',
