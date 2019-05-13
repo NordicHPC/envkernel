@@ -105,6 +105,7 @@ class envkernel():
         else:
             self.prefix = args.prefix
         self.replace = args.replace
+        self.language = args.language
         self.python = args.python
         if args.kernel_cmd:
             self.kernel_cmd = args.kernel_cmd.split()
@@ -141,7 +142,7 @@ class lmod(envkernel):
             "argv": argv,
             "display_name": (self.display_name if self.display_name
                       else "Lmod kernel with {}".format(' '.join(self.argv))),
-            "language": "python",
+            "language": self.language,
             }
         install_kernel(kernel, name=self.name, user=self.user,
                        replace=self.replace, prefix=self.prefix)
@@ -214,7 +215,7 @@ class docker(envkernel):
             "argv": argv,
             "display_name": (self.display_name if self.display_name
                       else "Docker with {}".format(args.image)),
-            "language": "python",
+            "language": self.language,
             }
         install_kernel(kernel, name=self.name, user=self.user,
                        replace=self.replace, prefix=self.prefix)
@@ -352,7 +353,7 @@ class singularity(envkernel):
             "argv": argv,
             "display_name": (self.display_name if self.display_name
                       else "Singularity with {}".format(args.image)),
-            "language": "python",
+            "language": self.language,
             }
         install_kernel(kernel, name=self.name, user=self.user,
                        replace=self.replace, prefix=self.prefix)
