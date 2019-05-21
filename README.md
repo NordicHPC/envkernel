@@ -21,7 +21,7 @@ Then it starts the normal IPython kernel.
 ## Installation
 
 ```
-pip install https://github.com/AaltoScienceIT/envkernel/archive/master.zip
+pip install https://github.com/NordicHPC/envkernel/archive/master.zip
 ```
 
 Not currently distributed through other channels, but hopefully this
