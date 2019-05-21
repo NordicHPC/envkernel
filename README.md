@@ -51,16 +51,22 @@ These options directly map to normal Jupyter kernel install options:
 * `--user`: Install kernel into user directory.
 * `--sys-prefix`: Install to the current Python's `sys.prefix`.
 * `--prefix`: same as normal kernal install option.
-* `--display-name NAME`: Human-readable name
+* `--display-name NAME`: Human-readable name.
 * `--replace`: Replace existing kernel (Jupyter option, unsure what this means).
 * `--language`: What language to tag this kernel.
 
 These are envkernel-specific options:
 
 * `--python`: Python interperter to use when invoking inside the environment (default `python`).
-* `--kernel-cmd`: Space-separated kernel command to invoke inside the environment.  The default one invokes the IPYthon kernel, but this could be used to invoke any other For example, `"R --slave -e 'IRkernel::main()' --args {connection_file}"` would use the ir kernel.  (This should be automated more later, also if this is used then `--python` is not used).
-
-
+* `--kernel-cmd`: a string which is the kernel to start - space
+  separated, no shell quoting, it will be split when saving.  The
+  default is `python -m ipykernel_launcher -f {connection_file}`,
+  which is suitable for IPython.  For example, to start an R kernel in
+  the environment use `R --slave -e IRkernel::main() --args
+  {connection_file}` as the value to this, being careful with quoting
+  the spaces only once.  To find what the strings should be, copy form
+  some existing kernels.  Perhaps we should make some shortcuts for
+  main ones.
 
 
 
@@ -125,8 +131,17 @@ The Lmod envkernel will load/unload
 [Lmod](https://lmod.readthedocs.io/) modules before running a normal
 IPython kernel.
 
+Using envkernel is better than the naive (but functional) method of
+modifying a kernel to invoke a particular Python binary, because that
+will invoke the right Python interperter but not set relevant other
+environment variables (so, for example, subprocesses won't be in the
+right environment).
 
 ### Lmod example
+
+This will run `module purge` and then `module load anaconda3` before
+invoking an IPython kernel using the name `python`, which will
+presumably be the one inside the `anaconda3` environment.
 
 ```
 envkernel lmod --name=anaconda3 --purge anaconda3
@@ -144,7 +159,11 @@ envkernel lmod --name=NAME [envkernel options] [module ...]
    the module is prefixed with `-`, it is actually unloaded (this is a
    Lmod feature).
 
-* `--purge`: Purge all modules before loading the new modules.
+* `--purge`: Purge all modules before loading the new modules.  This
+  can be safer, because sometimes users may automatically load modules
+  from their `.bashrc` which will cause failures if you try to load
+  conflicting ones.
+
 
 
 ## How it works
@@ -212,4 +231,3 @@ option:
 nbgrader autograde --ExecutePreprocessor.kernel_name=testcourse-0.5.9 R1_Introduction
 
 ```
-
