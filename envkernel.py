@@ -271,8 +271,8 @@ class docker(envkernel):
         open(connection_file, 'w').write(json.dumps(connection_data))
 
         # Add options to expose the ports
-        for port_host, port_container in expose_ports:
-            cmd.extend(['--expose={}'.format(port_container), "-p", "{}:{}".format(port_host, port_container)])
+#       for port_host, port_container in expose_ports:
+#           cmd.extend(['--expose={}'.format(port_container), "-p", "{}:{}".format(port_host, port_container)])
 
         ## Add options for exposing mounts
         #tmpdirs = [ ]  # keep reference to clean up later
