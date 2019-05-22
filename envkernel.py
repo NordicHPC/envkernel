@@ -191,7 +191,7 @@ class docker(envkernel):
         parser = argparse.ArgumentParser()
         parser.add_argument('image')
 
-        args, unknown_args = setup_parser.parse_known_args(self.argv)
+        args, unknown_args = parser.parse_known_args(self.argv)
         LOG.debug('setup: %s', args)
 
         argv = [
@@ -231,7 +231,7 @@ class docker(envkernel):
         parser.add_argument('--pwd', action='store_true')
         parser.add_argument('--connection-file')
 
-        args, unknown_args = parser.parse_known_args(self.argv)
+        args, unknown_args = parser.parse_known_args(argv)
 
         extra_mounts = [ ]
         extra_ports = [ ]
@@ -259,7 +259,11 @@ class docker(envkernel):
             #expose_ports.append((connection_data[var], connection_data[var]))
             cmd.extend(['--expose={}'.format(port), "-p", "{}:{}".format(port, port)])
         # Mount the connection file inside the container
-        extra_mounts.extend(["--mount", "type=bind,source={},destination={},ro={}".format(json_file, json_file, 'false')])
+        extra_mounts.extend(["--mount",
+                             "type=bind,source={},destination={},ro={}".format(
+                                 connection_file, connection_file, 'false'
+                                                                              )
+                            ])
         #expose_mounts.append(dict(src=json_file, dst=json_file))
 
         # Change connection_file to bind to all IPs.
@@ -267,8 +271,8 @@ class docker(envkernel):
         open(connection_file, 'w').write(json.dumps(connection_data))
 
         # Add options to expose the ports
-        for port_host, port_container in expose_ports:
-            cmd.extend(['--expose={}'.format(port_container), "-p", "{}:{}".format(port_host, port_container)])
+#       for port_host, port_container in expose_ports:
+#           cmd.extend(['--expose={}'.format(port_container), "-p", "{}:{}".format(port_host, port_container)])
 
         ## Add options for exposing mounts
         #tmpdirs = [ ]  # keep reference to clean up later
@@ -286,6 +290,7 @@ class docker(envkernel):
         # Process all of our mounts, to do two things:
         #  Substitute {workdir} with
         unknown_args.extend(extra_mounts)
+        tmpdirs = []
         for i, arg in enumerate(unknown_args):
             if '{workdir}' in arg and copy_workdir:
                 arg = arg + ',copy'
@@ -303,12 +308,13 @@ class docker(envkernel):
                 unknown_args[i] = newarg
 
         # Image name
-        cmd.append(args.image)
+#       cmd.append(args.image)
 
         # Remainder of all other arguments from the kernel specification
         cmd.extend([
             *unknown_args,
-            '--debug',
+#           '--debug',
+            args.image,
             *rest,
             ])
 
