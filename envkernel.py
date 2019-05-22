@@ -191,7 +191,7 @@ class docker(envkernel):
         parser = argparse.ArgumentParser()
         parser.add_argument('image')
 
-        args, unknown_args = setup_parser.parse_known_args(self.argv)
+        args, unknown_args = parser.parse_known_args(self.argv)
         LOG.debug('setup: %s', args)
 
         argv = [
