@@ -290,6 +290,7 @@ class docker(envkernel):
         # Process all of our mounts, to do two things:
         #  Substitute {workdir} with
         unknown_args.extend(extra_mounts)
+        tmpdirs = []
         for i, arg in enumerate(unknown_args):
             if '{workdir}' in arg and copy_workdir:
                 arg = arg + ',copy'
