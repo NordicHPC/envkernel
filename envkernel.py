@@ -313,7 +313,7 @@ class docker(envkernel):
         # Remainder of all other arguments from the kernel specification
         cmd.extend([
             *unknown_args,
-            '--debug',
+#           '--debug',
             args.image,
             *rest,
             ])
