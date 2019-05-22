@@ -231,7 +231,7 @@ class docker(envkernel):
         parser.add_argument('--pwd', action='store_true')
         parser.add_argument('--connection-file')
 
-        args, unknown_args = parser.parse_known_args(self.argv)
+        args, unknown_args = parser.parse_known_args(argv)
 
         extra_mounts = [ ]
         extra_ports = [ ]
