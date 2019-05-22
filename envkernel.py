@@ -259,7 +259,11 @@ class docker(envkernel):
             #expose_ports.append((connection_data[var], connection_data[var]))
             cmd.extend(['--expose={}'.format(port), "-p", "{}:{}".format(port, port)])
         # Mount the connection file inside the container
-        extra_mounts.extend(["--mount", "type=bind,source={},destination={},ro={}".format(json_file, json_file, 'false')])
+        extra_mounts.extend(["--mount",
+                             "type=bind,source={},destination={},ro={}".format(
+                                 connection_file, connection_file, 'false'
+                                                                              )
+                            ])
         #expose_mounts.append(dict(src=json_file, dst=json_file))
 
         # Change connection_file to bind to all IPs.
