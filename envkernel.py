@@ -308,12 +308,13 @@ class docker(envkernel):
                 unknown_args[i] = newarg
 
         # Image name
-        cmd.append(args.image)
+#       cmd.append(args.image)
 
         # Remainder of all other arguments from the kernel specification
         cmd.extend([
             *unknown_args,
             '--debug',
+            args.image,
             *rest,
             ])
 
