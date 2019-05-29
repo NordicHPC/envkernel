@@ -223,13 +223,13 @@ class docker(envkernel):
     def run(self):
         argv, rest = split_doubledash(self.argv)
         parser = argparse.ArgumentParser()
-        parser.add_argument('image', help='image name')
-        parser.add_argument('--mount', '-m', action='append', default=[],
-                                help='mount to set up, format hostDir:containerMountPoint')
+        parser.add_argument('image', help='Dcker image name')
+        #parser.add_argument('--mount', '-m', action='append', default=[],
+        #                        help='mount to set up, format hostDir:containerMountPoint')
         parser.add_argument('--copy-workdir', default=False, action='store_true')
         parser.add_argument('--workdir')
         parser.add_argument('--pwd', action='store_true')
-        parser.add_argument('--connection-file')
+        parser.add_argument('--connection-file', help="Do not use, internal use.")
 
         args, unknown_args = parser.parse_known_args(argv)
 

@@ -70,9 +70,42 @@ These are envkernel-specific options:
 
 
 
+
+
 ## Docker
 
-Docker is currently written, but old code and needs testing and debugging before usage.  In principle, usage is quite similar to Singularity below.
+Docker is a containerization system that runs as a system service.
+
+Note: docker has not been fully tested, but has been reported to work.
+
+
+### Docker example
+
+```
+envkernel singularity --name=NAME  --pwd --bind /m/jh/coursedata/:/coursedata /path/to/image.simg
+```
+
+### Docker mode arguments
+
+General invocation:
+
+```
+envkernel singularity --name=NAME [envkernel options] [singularity options] [image]
+```
+
+* `image`: Required positional argument: name of docker image to run.
+
+* `--pwd`: Bind-mount the current working directory and use it as the
+  current working directory inside the notebook.  This is usually
+  useful.
+
+* A few more yet-undocumented and untested arguments...
+
+Any unknown argument is passed directly to the `docker run` call, and
+thus can be any normal Docker argument.  If `,copy` is included in the
+`--mount` command options, the directory will be copied before
+mounting.  This may be useful if the directory is on a network mount
+which the root docker can't access.
 
 
 
@@ -100,7 +133,8 @@ General invocation:
 envkernel singularity --name=NAME [envkernel options] [singularity options] [image]
 ```
 
-* `image`: Required positional argument: run this singularity image.
+* `image`: Required positional argument: name of singularity image to
+  run.
 
 * `--pwd`: Bind-mount the current working directory and use it as the
   current working directory inside the notebook.  This may happen by
@@ -163,6 +197,8 @@ envkernel lmod --name=NAME [envkernel options] [module ...]
   can be safer, because sometimes users may automatically load modules
   from their `.bashrc` which will cause failures if you try to load
   conflicting ones.
+
+
 
 
 
