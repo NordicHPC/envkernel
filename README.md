@@ -261,7 +261,7 @@ envkernel was orginally inspired by the need for nbgrader to securely
 contain student's code while autograding.  To do this, set up a
 contained kernel as above - it's up to you to figure out how to do
 this properly with your chosen method (docker or singularity).  Then
-autograde like such, add the `--ExecutePreprocessor.kernel_name`
+autograde like normal, but add the `--ExecutePreprocessor.kernel_name`
 option.
 
 Set up a kernel:
