@@ -38,7 +38,7 @@ same location).
 
 General invocation:
 
-```
+```shell
 envkernel [mode] [envkernel options] [mode-specific-options]
 ```
 
@@ -47,13 +47,14 @@ General arguments usable by *all* classes during the setup phase:
 
 These options directly map to normal Jupyter kernel install options:
 
+* `mode`: `singularity`, `docker`, `lmod`, or whatever mode is desired.
 * `--name $name`: Name of kernel to install (**required**).
 * `--user`: Install kernel into user directory.
 * `--sys-prefix`: Install to the current Python's `sys.prefix`.
 * `--prefix`: same as normal kernal install option.
 * `--display-name NAME`: Human-readable name.
 * `--replace`: Replace existing kernel (Jupyter option, unsure what this means).
-* `--language`: What language to tag this kernel.
+* `--language`: What language to tag this kernel (default `python`.
 
 These are envkernel-specific options:
 
@@ -81,7 +82,7 @@ Note: docker has not been fully tested, but has been reported to work.
 
 ### Docker example
 
-```
+```shell
 envkernel singularity --name=NAME  --pwd --bind /m/jh/coursedata/:/coursedata /path/to/image.simg
 ```
 
@@ -89,7 +90,7 @@ envkernel singularity --name=NAME  --pwd --bind /m/jh/coursedata/:/coursedata /p
 
 General invocation:
 
-```
+```shell
 envkernel singularity --name=NAME [envkernel options] [singularity options] [image]
 ```
 
@@ -121,7 +122,7 @@ system services.
 
 ### Singularity example
 
-```
+```shell
 envkernel singularity --name=NAME --contain --bind /m/jh/coursedata/:/coursedata /path/to/image.simg
 ```
 
@@ -129,7 +130,7 @@ envkernel singularity --name=NAME --contain --bind /m/jh/coursedata/:/coursedata
 
 General invocation:
 
-```
+```shell
 envkernel singularity --name=NAME [envkernel options] [singularity options] [image]
 ```
 
@@ -177,7 +178,7 @@ This will run `module purge` and then `module load anaconda3` before
 invoking an IPython kernel using the name `python`, which will
 presumably be the one inside the `anaconda3` environment.
 
-```
+```shell
 envkernel lmod --name=anaconda3 --purge anaconda3
 ```
 
@@ -185,7 +186,7 @@ envkernel lmod --name=anaconda3 --purge anaconda3
 
 General invocation:
 
-```
+```shell
 envkernel lmod --name=NAME [envkernel options] [module ...]
 ```
 
@@ -215,13 +216,13 @@ Example envkernel setup command.  This makes a new Jupyter kernel
 Singularity options `--contain` (contain, on default mounts) and
 `--bind` (bind a dir).`
 
-```
+```shell
 envkernel singularity --sys-prefix --name=testcourse-0.5.9 /l/simg/0.5.9.simg --contain --bind /m/jh/coursedata/:/coursedata
 ```
 
 That will create this kernelspec.  Note that most of the arguments are passed through:
 
-```
+```json
 {
     "argv": [
         "/opt/conda-nbserver-0.5.9/bin/envkernel",
@@ -261,9 +262,17 @@ contain student's code while autograding.  To do this, set up a
 contained kernel as above - it's up to you to figure out how to do
 this properly with your chosen method (docker or singularity).  Then
 autograde like such, add the `--ExecutePreprocessor.kernel_name`
-option:
+option.
 
+Set up a kernel:
+
+```shell
+envkernel docker --user --name=testcourse-0.5.9 --pwd aaltoscienceit/notebook-server:0.5.9 --bind /mnt/jupyter/course/testcourse/data/:/coursedata
 ```
+
+Run the autograding:
+
+```shell
 nbgrader autograde --ExecutePreprocessor.kernel_name=testcourse-0.5.9 R1_Introduction
 
 ```
