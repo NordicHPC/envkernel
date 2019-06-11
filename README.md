@@ -276,3 +276,12 @@ Run the autograding:
 nbgrader autograde --ExecutePreprocessor.kernel_name=testcourse-0.5.9 R1_Introduction
 
 ```
+
+
+
+
+
+## See also
+
+* General
+  * https://github.com/Anaconda-Platform/nb_conda_kernels - automatically create kernels from conda environments.  Uses a KernelSpecManager so possibly overrides everything at once, and also defaults to all kernels.
