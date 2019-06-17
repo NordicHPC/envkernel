@@ -11,7 +11,7 @@ setuptools.setup(
     description="Jupyter kernels in docker, singularity, Lmod",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/AaltoScienceIT/envkernel",
+    url="https://github.com/NordicHPC/envkernel",
     #packages=setuptools.find_packages(),
     py_modules=["envkernel"],
     entry_points={
