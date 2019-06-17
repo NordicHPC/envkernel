@@ -1,18 +1,29 @@
 # Switch environments before running Jupyter kernels
 
 Sometimes, one needs to execute Jupyter kernels in a different
-environment.  One could manually adjust the kernelspec files to set
-environment variables or run commands before starting the kernel, but
-envkernel automates this process.
+environment.  Say you want to execute the kernel in a conda
+environment (that's easy, but actually misses setting certain
+environment variables).  Or run it inside a Docker container.  One
+could manually adjust the kernelspec files to set environment
+variables or run commands before starting the kernel, but envkernel
+automates this process.
 
 In general, there are two passes: First, install the kernel, e.g.:
-`envkernel lmod --name=anaconda3 anaconda3`.  This parses some options
-and writes a kernelspec file with the the `--name` you specify.  When
-Jupyter tries to start this kernel, it will execute the next phase.
-When Jupyter tries to run the kernel, the kernelspec file will
-re-execcute `envkernel` in the run mode, which does whatever is needed
-to set up the environment (in this case, load the `anaconda3` module).
-Then it starts the normal IPython kernel.
+`envkernel virtualenv --name=my-venv /path/to/venv`.  This parses some
+options and writes a kernelspec file with the the `--name` you
+specify.  When Jupyter tries to start this kernel, it will execute the
+next phase.  When Jupyter tries to run the kernel, the kernelspec file
+will re-execcute `envkernel` in the run mode, which does whatever is
+needed to set up the environment (in this case, sets `PATH` to the
+`/path/to/venv/bin/` that is needed).  Then it starts the normal
+IPython kernel.
+
+Available modes:
+* `conda`: Activate a [conda environment](https://docs.conda.io/) first.
+* `virtualenv`: Activate a virtualenv first.
+* `docker`: Run the kernel in a Docker container.
+* `singularity`: Run the kernel in a [singularity container](https://www.sylabs.io/docs/).
+* `Lmod`: Activate [Lmod](https://lmod.readthedocs.io/) modules first.
 
 
 
