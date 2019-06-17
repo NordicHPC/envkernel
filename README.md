@@ -160,6 +160,37 @@ useful Singularity options are (nothign envkernel specific here):
 
 
 
+## Conda
+
+The Conda envkernel will activate Conda enviroments (set th `PATH`,
+`CPATH`, `LD_LIBRARY_PATH`, and `LIBRARY_PATH`) environment variables.
+This is done manually, if anyone knows a better way to do this, please
+inform us.
+
+### Conda example
+
+This will load the `anaconda` environment before invoking an IPython
+kernel using the name `python`, which will presumably be the one
+inside the `anaconda3` environment.
+
+```shell
+envkernel conda --name=conda-anaconda3 /path/to/anaconda3
+```
+
+### Conda mode arguments
+
+General invocation:
+
+```shell
+envkernel conda --name=NAME [envkernel options] conda-env-full-path
+```
+
+* `conda-env-full-path`: Full path to the conda environment to load.
+
+
+
+
+
 ## Lmod
 
 The Lmod envkernel will load/unload
@@ -182,7 +213,7 @@ presumably be the one inside the `anaconda3` environment.
 envkernel lmod --name=anaconda3 --purge anaconda3
 ```
 
-### Lmod mode Arguments
+### Lmod mode arguments
 
 General invocation:
 

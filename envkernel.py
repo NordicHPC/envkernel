@@ -11,8 +11,6 @@ import subprocess
 import sys
 import tempfile
 
-print(sys.argv)
-
 LOG = logging.getLogger('envkernel')
 LOG.setLevel(logging.DEBUG)
 logging.lastResort.setLevel(logging.DEBUG)
@@ -62,6 +60,16 @@ def find_connection_file(args):
         if a == '-f':
             return args[i+1]
 
+
+
+def path_join(*args):
+    """Join the arguments using ':', like the PATH environment variable"""
+    if len(args) == 1:
+        return args[0]
+    if args[1] is None or args[1] == '':
+        return path_join(args[0], *args[2:])
+    path = os.pathsep.join([args[0], args[1]])
+    return path_join(path, *args[2:])
 
 
 def printargs(args):
@@ -123,7 +131,6 @@ class envkernel():
 
 
 class lmod(envkernel):
-
     def setup(self):
         super().setup()
         argv = [
@@ -184,13 +191,72 @@ class lmod(envkernel):
         os.execvp(rest[0], rest)
 
 
-class docker(envkernel):
 
+class conda(envkernel):
+    def setup(self):
+        super().setup()
+        parser = argparse.ArgumentParser()
+        parser.add_argument('path')
+        args, unknown_args = parser.parse_known_args(self.argv)
+
+        argv = [
+            os.path.realpath(sys.argv[0]),
+            self.__class__.__name__, 'run',
+            *unknown_args,
+            args.path,
+            '--',
+            *self.kernel_cmd,
+        ]
+        default_display_name = "{} (Conda, {})".format(
+            os.path.basename(args.path.strip('/')),
+            args.path)
+        kernel = {
+            "argv": argv,
+            "display_name": (self.display_name if self.display_name
+                      else default_display_name),
+            "language": self.language,
+            }
+        install_kernel(kernel, name=self.name, user=self.user,
+                       replace=self.replace, prefix=self.prefix)
+
+    def run(self):
+        """load modules and run:
+
+        before '--': the modules to load
+        after '--': the Python command to run after loading"""
+        argv, rest = split_doubledash(self.argv)
+        parser = argparse.ArgumentParser()
+        #parser.add_argument('--purge', action='store_true', default=False, help="Purge existing modules first")
+        parser.add_argument('path')
+        args, unknown_args = parser.parse_known_args(argv)
+
+        #print(args)
+        #print('stderr', args, file=sys.stderr)
+        LOG.debug('run: args: %s', args)
+        LOG.debug('run: unknown_args: %s', unknown_args)
+
+        path = args.path
+        if not os.path.exists(path):
+            LOG.critical("conda path does not exist: %s", path)
+            raise RuntimeError("envkernel: conda path {} does not exist".format(path))
+        if not os.path.exists(os.path.join(path, 'bin')):
+            LOG.critical("conda bin does not exist: %s/bin", path)
+            raise RuntimeError("envkernel: conda path {} does not exist".format(path+'/bin'))
+
+        os.environ['PATH']            = path_join(os.path.join(path, 'bin'    ), os.environ.get('PATH', None))
+        os.environ['CPATH']           = path_join(os.path.join(path, 'include'), os.environ.get('CPATH', None))
+        os.environ['LD_LIBRARY_PATH'] = path_join(os.path.join(path, 'lib'    ), os.environ.get('LD_LIBRARY_PATH', None))
+        os.environ['LIBRARY_PATH']    = path_join(os.path.join(path, 'bin'    ), os.environ.get('LIBRARY_PATH', None))
+
+        os.execvp(rest[0], rest)
+
+
+
+class docker(envkernel):
     def setup(self):
         super().setup()
         parser = argparse.ArgumentParser()
         parser.add_argument('image')
-
         args, unknown_args = parser.parse_known_args(self.argv)
         LOG.debug('setup: %s', args)
 
