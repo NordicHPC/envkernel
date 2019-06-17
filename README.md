@@ -54,11 +54,13 @@ These options directly map to normal Jupyter kernel install options:
 * `--prefix`: same as normal kernal install option.
 * `--display-name NAME`: Human-readable name.
 * `--replace`: Replace existing kernel (Jupyter option, unsure what this means).
-* `--language`: What language to tag this kernel (default `python`.
+* `--language`: What language to tag this kernel (default `python`).
 
 These are envkernel-specific options:
 
 * `--python`: Python interperter to use when invoking inside the environment (default `python`).
+* `--kernel=NAME`: Auto-set `--language` and `--kernel-cmd` to
+  that needed for these well-known kernels.  Options include `ipykernel` (the default) or `ir`.
 * `--kernel-cmd`: a string which is the kernel to start - space
   separated, no shell quoting, it will be split when saving.  The
   default is `python -m ipykernel_launcher -f {connection_file}`,
@@ -66,8 +68,8 @@ These are envkernel-specific options:
   the environment use `R --slave -e IRkernel::main() --args
   {connection_file}` as the value to this, being careful with quoting
   the spaces only once.  To find what the strings should be, copy form
-  some existing kernels.  Perhaps we should make some shortcuts for
-  main ones.
+  some existing kernels.  `--kernel=NAME` includes shortcut for some
+  popular kernels.
 
 
 

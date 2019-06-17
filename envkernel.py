@@ -95,7 +95,12 @@ class envkernel():
                             help="Install kernel to this prefix")
         parser.add_argument('--replace', action='store_true',
                             help="Replace existing kernel")
-        parser.add_argument('--python', default='python',
+        parser.add_argument('--kernel', default='ipykernel',
+                            help="Kernel to install, options are ipykernel or ir (default ipykernel).  This "
+                                 "simply sets the --kernel-cmd and --language options to the proper "
+                                 "values for these well-known kernels.  It could break, however. --kernel-cmd "
+                                 "overrides this.")
+        parser.add_argument('--python',
                             help="Python command to run (default 'python')")
         parser.add_argument('--kernel-cmd',
                             help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
@@ -113,17 +118,30 @@ class envkernel():
         else:
             self.prefix = args.prefix
         self.replace = args.replace
-        self.language = args.language
         self.python = args.python
         if args.kernel_cmd:
+            self.language = 'python'
             self.kernel_cmd = args.kernel_cmd.split()
-        else:
+        elif args.kernel == 'ipykernel':
+            self.language = 'python'
             self.kernel_cmd = [args.python,
                                "-m",
                                "ipykernel_launcher",
                                "-f",
                                "{connection_file}",
                                ]
+        elif args.kernel == 'ir':
+            self.language = 'R'
+            self.kernel_cmd = ['R',
+                               '--slave',
+                               '-e',
+                               'IRkernel::main()',
+                               '--args',
+                               '{connection_file}']
+        else:
+            LOG.critical("Unknown kernel: %s", args.kernel)
+        if args.language:
+            self.language = args.language
         self.argv = unknown_args
 
     def _get_parser(self):
