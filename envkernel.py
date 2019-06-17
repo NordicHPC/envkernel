@@ -100,7 +100,7 @@ class envkernel():
                                  "simply sets the --kernel-cmd and --language options to the proper "
                                  "values for these well-known kernels.  It could break, however. --kernel-cmd "
                                  "overrides this.")
-        parser.add_argument('--python',
+        parser.add_argument('--python', default='python',
                             help="Python command to run (default 'python')")
         parser.add_argument('--kernel-cmd',
                             help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
@@ -225,8 +225,9 @@ class conda(envkernel):
             '--',
             *self.kernel_cmd,
         ]
-        default_display_name = "{} (Conda, {})".format(
+        default_display_name = "{} ({}, {})".format(
             os.path.basename(args.path.strip('/')),
+            self.__class__.__name__,
             args.path)
         kernel = {
             "argv": argv,
@@ -255,16 +256,32 @@ class conda(envkernel):
 
         path = args.path
         if not os.path.exists(path):
-            LOG.critical("conda path does not exist: %s", path)
-            raise RuntimeError("envkernel: conda path {} does not exist".format(path))
+            LOG.critical("%s path does not exist: %s", self.__class__.__name__, path)
+            raise RuntimeError("envkernel: {} path {} does not exist".format(self.__class__.__name__, path))
         if not os.path.exists(os.path.join(path, 'bin')):
-            LOG.critical("conda bin does not exist: %s/bin", path)
-            raise RuntimeError("envkernel: conda path {} does not exist".format(path+'/bin'))
+            LOG.critical("%s bin does not exist: %s/bin", self.__class__.__name__, path)
+            raise RuntimeError("envkernel: {} path {} does not exist".format(self.__class__.__name__, path+'/bin'))
 
+        self._run(args, rest)
+
+    def _run(self, args, rest):
+        path = args.path
         os.environ['PATH']            = path_join(os.path.join(path, 'bin'    ), os.environ.get('PATH', None))
         os.environ['CPATH']           = path_join(os.path.join(path, 'include'), os.environ.get('CPATH', None))
         os.environ['LD_LIBRARY_PATH'] = path_join(os.path.join(path, 'lib'    ), os.environ.get('LD_LIBRARY_PATH', None))
         os.environ['LIBRARY_PATH']    = path_join(os.path.join(path, 'bin'    ), os.environ.get('LIBRARY_PATH', None))
+
+        os.execvp(rest[0], rest)
+
+
+
+class virtualenv(conda):
+    def _run(self, args, rest):
+        path = args.path
+        os.environ.pop('PYTHONHOME')
+        os.environ['PATH'] = path_join(os.path.join(path, 'bin'), os.environ.get('PATH', None))
+        if 'PS1' in os.environ:
+            os.environ['PS1'] = "(venv3) " + os.environ['PS1']
 
         os.execvp(rest[0], rest)
 

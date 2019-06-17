@@ -75,6 +75,51 @@ These are envkernel-specific options:
 
 
 
+## Conda
+
+The Conda envkernel will activate Conda enviroments (set th `PATH`,
+`CPATH`, `LD_LIBRARY_PATH`, and `LIBRARY_PATH`) environment variables.
+This is done manually, if anyone knows a better way to do this, please
+inform us.
+
+### Conda example
+
+This will load the `anaconda` environment before invoking an IPython
+kernel using the name `python`, which will presumably be the one
+inside the `anaconda3` environment.
+
+```shell
+envkernel conda --name=conda-anaconda3 /path/to/anaconda3
+```
+
+### Conda mode arguments
+
+General invocation:
+
+```shell
+envkernel conda --name=NAME [envkernel options] conda-env-full-path
+```
+
+* `conda-env-full-path`: Full path to the conda environment to load.
+
+
+
+
+
+## Virtualenv
+
+This operates identically to `conda` mode, but with name `virtualenv`.
+
+### Virtualenv example
+
+```shell
+envkernel virtualenv --name=conda-anaconda3 /path/to/anaconda3
+```
+
+
+
+
+
 ## Docker
 
 Docker is a containerization system that runs as a system service.
@@ -157,37 +202,6 @@ useful Singularity options are (nothign envkernel specific here):
 * `--net` or `-n`: Run in new network namespace.  This does **NOT**
   work with Jupyter kernels, because localhost must currently be
   shared.  So don't use this unless we create proper net gateway.
-
-
-
-
-
-## Conda
-
-The Conda envkernel will activate Conda enviroments (set th `PATH`,
-`CPATH`, `LD_LIBRARY_PATH`, and `LIBRARY_PATH`) environment variables.
-This is done manually, if anyone knows a better way to do this, please
-inform us.
-
-### Conda example
-
-This will load the `anaconda` environment before invoking an IPython
-kernel using the name `python`, which will presumably be the one
-inside the `anaconda3` environment.
-
-```shell
-envkernel conda --name=conda-anaconda3 /path/to/anaconda3
-```
-
-### Conda mode arguments
-
-General invocation:
-
-```shell
-envkernel conda --name=NAME [envkernel options] conda-env-full-path
-```
-
-* `conda-env-full-path`: Full path to the conda environment to load.
 
 
 
