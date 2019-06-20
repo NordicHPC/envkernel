@@ -55,7 +55,7 @@ def printargs(args):
 
 class envkernel():
     def __init__(self, argv):
-        LOG.debug('init: cli args: %s', argv)
+        LOG.debug('envkernel: cli args: %s', argv)
         self.argv = argv
     def setup(self):
         parser = argparse.ArgumentParser()
