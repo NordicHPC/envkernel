@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import glob
 import json
 import logging
 import os
@@ -14,31 +15,6 @@ import tempfile
 LOG = logging.getLogger('envkernel')
 LOG.setLevel(logging.DEBUG)
 logging.lastResort.setLevel(logging.DEBUG)
-
-
-
-def install_kernel(kernel, name, user=False, replace=None, prefix=None):
-    """Install a kernel (as given by json) to a kernel directory
-
-    A thin wrapper around jupyter_client.kernelspec.KernelSpecManager().install_kernel_spec.
-
-    kernel: kernel JSON
-    name: kernel name
-    """
-    import jupyter_client.kernelspec
-    #jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec('python3').argv
-
-    with tempfile.TemporaryDirectory(prefix='jupyter-kernel-secure-') \
-      as kernel_dir:
-        open(os.path.join(kernel_dir, 'kernel.json'), 'w').write(
-            json.dumps(kernel, sort_keys=True, indent=4))
-        jupyter_client.kernelspec.KernelSpecManager().install_kernel_spec(
-            kernel_dir, kernel_name=name,
-            user=user, replace=replace, prefix=prefix)
-
-    print()
-    print("Kernel saved to {}".format(jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(name).resource_dir))
-    print("Kernel command line is:", kernel['argv'])
 
 
 
@@ -138,14 +114,61 @@ class envkernel():
                                'IRkernel::main()',
                                '--args',
                                '{connection_file}']
+        elif args.kernel == 'imatlab':
+            self.language = 'matlab'
+            self.kernel_cmd = [args.python,
+                               '-m',
+                               'imatlab',
+                               '-f',
+                               '{connection_file}']
         else:
             LOG.critical("Unknown kernel: %s", args.kernel)
         if args.language:
             self.language = args.language
+        # Copy logos from upstream packages, if exists
+        self.logos = None
+        if self.language == 'python':
+            try:
+                import ipykernel
+                ipykernel_dir = os.path.dirname(ipykernel.__file__)
+                logos = glob.glob(os.path.join(ipykernel_dir, 'resources', '*'))
+                self.logos = logos
+            except ImportError:
+                LOG.debug("Could not automatically find ipykernel logos")
+        #
         self.argv = unknown_args
 
     def _get_parser(self):
         pass
+
+    def install_kernel(self, kernel, name, user=False, replace=None, prefix=None, logos=None):
+        """Install a kernel (as given by json) to a kernel directory
+
+        A thin wrapper around jupyter_client.kernelspec.KernelSpecManager().install_kernel_spec.
+
+        kernel: kernel JSON
+        name: kernel name
+        """
+        import jupyter_client.kernelspec
+        #jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec('python3').argv
+
+        with tempfile.TemporaryDirectory(prefix='jupyter-kernel-secure-') \
+          as kernel_dir:
+            open(os.path.join(kernel_dir, 'kernel.json'), 'w').write(
+                json.dumps(kernel, sort_keys=True, indent=4))
+            if self.logos:
+                if isinstance(self.logos, str) and os.path.isdir(self.logos):
+                    self.logos = os.path.listdir(self.logos)
+                for logo in self.logos:
+                    shutil.copy(logo, kernel_dir)
+            jupyter_client.kernelspec.KernelSpecManager().install_kernel_spec(
+                kernel_dir, kernel_name=name,
+                user=user, replace=replace, prefix=prefix)
+
+        LOG.info("")
+        LOG.info("  Kernel saved to {}".format(jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(name).resource_dir))
+        LOG.info("  Command line: %s", kernel['argv'])
+
 
 
 class lmod(envkernel):
@@ -169,8 +192,8 @@ class lmod(envkernel):
                       else "Lmod kernel with {}".format(' '.join(self.argv))),
             "language": self.language,
             }
-        install_kernel(kernel, name=self.name, user=self.user,
-                       replace=self.replace, prefix=self.prefix)
+        self.install_kernel(kernel, name=self.name, user=self.user,
+                            replace=self.replace, prefix=self.prefix)
 
     def run(self):
         """load modules and run:
@@ -235,8 +258,8 @@ class conda(envkernel):
                       else default_display_name),
             "language": self.language,
             }
-        install_kernel(kernel, name=self.name, user=self.user,
-                       replace=self.replace, prefix=self.prefix)
+        self.install_kernel(kernel, name=self.name, user=self.user,
+                            replace=self.replace, prefix=self.prefix)
 
     def run(self):
         """load modules and run:
@@ -318,8 +341,8 @@ class docker(envkernel):
                       else "Docker with {}".format(args.image)),
             "language": self.language,
             }
-        install_kernel(kernel, name=self.name, user=self.user,
-                       replace=self.replace, prefix=self.prefix)
+        self.install_kernel(kernel, name=self.name, user=self.user,
+                            replace=self.replace, prefix=self.prefix)
 
     def run(self):
         argv, rest = split_doubledash(self.argv)
@@ -462,8 +485,8 @@ class singularity(envkernel):
                       else "Singularity with {}".format(args.image)),
             "language": self.language,
             }
-        install_kernel(kernel, name=self.name, user=self.user,
-                       replace=self.replace, prefix=self.prefix)
+        self.install_kernel(kernel, name=self.name, user=self.user,
+                            replace=self.replace, prefix=self.prefix)
 
     def run(self):
         argv, rest = split_doubledash(self.argv)
