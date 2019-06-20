@@ -61,7 +61,7 @@ These options directly map to normal Jupyter kernel install options:
 * `mode`: `singularity`, `docker`, `lmod`, or whatever mode is desired.
 * `--name $name`: Name of kernel to install (**required**).
 * `--user`: Install kernel into user directory.
-* `--sys-prefix`: Install to the current Python's `sys.prefix`.
+* `--sys-prefix`: Install to the current Python's `sys.prefix` (the Python which is running envkernel).
 * `--prefix`: same as normal kernal install option.
 * `--display-name NAME`: Human-readable name.
 * `--replace`: Replace existing kernel (Jupyter option, unsure what this means).
