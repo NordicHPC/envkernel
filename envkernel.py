@@ -80,8 +80,8 @@ class envkernel():
                             help="Python command to run (default 'python')")
         parser.add_argument('--kernel-cmd',
                             help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
-        parser.add_argument('--language', default='python',
-                            help="Language to put into kernel file (default 'python')")
+        parser.add_argument('--language',
+                            help="Language to put into kernel file (default based on --kernel)")
         args, unknown_args = parser.parse_known_args(sys.argv[2:])
         LOG.debug('setup: args: %s', args)
         LOG.debug('setup: unknown_args: %s', unknown_args)
@@ -95,6 +95,9 @@ class envkernel():
             self.prefix = args.prefix
         self.replace = args.replace
         self.python = args.python
+        if self.python == "SELF":
+            self.python = sys.executable
+        # Setting/detecting language and kernel command
         if args.kernel_cmd:
             self.language = 'python'
             self.kernel_cmd = args.kernel_cmd.split()
