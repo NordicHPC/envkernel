@@ -220,7 +220,7 @@ class lmod(envkernel):
             python3 support.
             """
             commands = os.popen(
-                +'%s/libexec/lmod python %s %s'\
+                '%s/libexec/lmod python %s %s'\
                 % (os.environ['LMOD_PKG'], command, ' '.join(arguments))).read()
             exec(commands)
         if args.purge:
