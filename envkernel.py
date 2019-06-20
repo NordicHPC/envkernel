@@ -103,7 +103,7 @@ class envkernel():
             self.kernel_cmd = args.kernel_cmd.split()
         elif args.kernel == 'ipykernel':
             self.language = 'python'
-            self.kernel_cmd = [args.python,
+            self.kernel_cmd = [self.python,
                                "-m",
                                "ipykernel_launcher",
                                "-f",
@@ -119,7 +119,7 @@ class envkernel():
                                '{connection_file}']
         elif args.kernel == 'imatlab':
             self.language = 'matlab'
-            self.kernel_cmd = [args.python,
+            self.kernel_cmd = [self.python,
                                '-m',
                                'imatlab',
                                '-f',
@@ -158,7 +158,7 @@ class envkernel():
         with tempfile.TemporaryDirectory(prefix='jupyter-kernel-secure-') \
           as kernel_dir:
             open(os.path.join(kernel_dir, 'kernel.json'), 'w').write(
-                json.dumps(kernel, sort_keys=True, indent=4))
+                json.dumps(kernel, sort_keys=True, indent=1))
             if self.logos:
                 if isinstance(self.logos, str) and os.path.isdir(self.logos):
                     self.logos = os.path.listdir(self.logos)
@@ -304,7 +304,7 @@ class conda(envkernel):
 class virtualenv(conda):
     def _run(self, args, rest):
         path = args.path
-        os.environ.pop('PYTHONHOME')
+        os.environ.pop('PYTHONHOME', None)
         os.environ['PATH'] = path_join(os.path.join(path, 'bin'), os.environ.get('PATH', None))
         if 'PS1' in os.environ:
             os.environ['PS1'] = "(venv3) " + os.environ['PS1']
