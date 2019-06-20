@@ -69,7 +69,10 @@ These options directly map to normal Jupyter kernel install options:
 
 These are envkernel-specific options:
 
-* `--python`: Python interperter to use when invoking inside the environment (default `python`).
+* `--python`: Python interperter to use when invoking inside the
+  environment. (Default `python`.  Unlike other kernels, this defaults
+  to a relative path because the point of envkernel is to set up PATH
+  properly.)
 * `--kernel=NAME`: Auto-set `--language` and `--kernel-cmd` to
   that needed for these well-known kernels.  Options include `ipykernel` (the default) or `ir`.
 * `--kernel-cmd`: a string which is the kernel to start - space
