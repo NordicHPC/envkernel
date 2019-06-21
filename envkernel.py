@@ -192,7 +192,7 @@ class lmod(envkernel):
         kernel = {
             "argv": argv,
             "display_name": (self.display_name if self.display_name
-                      else "Lmod kernel with {}".format(' '.join(self.argv))),
+                      else "{}".format(' '.join(self.argv))),
             "language": self.language,
             }
         self.install_kernel(kernel, name=self.name, user=self.user,
@@ -232,6 +232,8 @@ class lmod(envkernel):
         LOG.debug('Lmod loading ' + ' '.join(args.module))
         module('load', *args.module)
 
+        LOG.debug('envkernel running: %s', printargs(rest))
+        LOG.debug('PATH: %s', os.environ['PATH'])
         os.execvp(rest[0], rest)
 
 
