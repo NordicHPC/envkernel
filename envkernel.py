@@ -113,6 +113,9 @@ class envkernel():
                             help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
         parser.add_argument('--language',
                             help="Language to put into kernel file (default based on --kernel)")
+        parser.add_argument('--env', action='append', default=[],
+                            help="Environment to add, format NAME=VAL.  Can be given multiple times. "
+                                 "These are statically embedded in the kernel.json file")
         args, unknown_args = parser.parse_known_args(self.argv)
         LOG.debug('setup: args: %s', args)
         LOG.debug('setup: unknown_args: %s', unknown_args)
@@ -168,6 +171,10 @@ class envkernel():
                 self.logos = logos
             except ImportError:
                 LOG.debug("Could not automatically find ipykernel logos")
+        # env
+        for env in args.env:
+            name, value = env.split('=', 1)
+            self.kernel.setdefault('env', {})[name] = value
         #
         self.argv = unknown_args
 

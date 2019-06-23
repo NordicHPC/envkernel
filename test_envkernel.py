@@ -116,6 +116,12 @@ def test_language(d, mode):
     kern = install(d, "%s --language=AAA MOD1"%mode)
     assert kern['kernel']['language'] == 'AAA'
 
+@all_modes()
+def test_env(d, mode):
+    kern = install(d, "%s --env=AAA=BBB --env=CCC=DDD MOD1"%mode)
+    assert kern['kernel']['env']['AAA'] == 'BBB'
+    assert kern['kernel']['env']['CCC'] == 'DDD'
+
 
 
 # Languages
