@@ -83,6 +83,7 @@ def printargs(args):
 
 
 class envkernel():
+    execvp = staticmethod(os.execvp)
     def __init__(self, argv):
         LOG.debug('envkernel: cli args: %s', argv)
         self.argv = argv
@@ -134,10 +135,10 @@ class envkernel():
         self.kernel = { }
         if args.kernel_template:
             import jupyter_client.kernelspec
-            template = jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(args.template_kernel)
-            self.kernel = template.to_json()
+            template = jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(args.kernel_template)
+            self.kernel = json.loads(template.to_json())
         # --kernel which sets to default well-known kernels.
-        if 'argv' not in self.kernel:
+        if args.kernel is None and 'argv' not in self.kernel:
             args.kernel = 'ipykernel'
         if args.kernel:
             if args.kernel in KNOWN_KERNELS:
@@ -265,7 +266,7 @@ class lmod(envkernel):
 
         LOG.debug('envkernel running: %s', printargs(rest))
         LOG.debug('PATH: %s', os.environ['PATH'])
-        os.execvp(rest[0], rest)
+        self.execvp(rest[0], rest)
 
 
 
@@ -324,9 +325,9 @@ class conda(envkernel):
         os.environ['PATH']            = path_join(os.path.join(path, 'bin'    ), os.environ.get('PATH', None))
         os.environ['CPATH']           = path_join(os.path.join(path, 'include'), os.environ.get('CPATH', None))
         os.environ['LD_LIBRARY_PATH'] = path_join(os.path.join(path, 'lib'    ), os.environ.get('LD_LIBRARY_PATH', None))
-        os.environ['LIBRARY_PATH']    = path_join(os.path.join(path, 'bin'    ), os.environ.get('LIBRARY_PATH', None))
+        os.environ['LIBRARY_PATH']    = path_join(os.path.join(path, 'lib'    ), os.environ.get('LIBRARY_PATH', None))
 
-        os.execvp(rest[0], rest)
+        self.execvp(rest[0], rest)
 
 
 
@@ -338,7 +339,7 @@ class virtualenv(conda):
         if 'PS1' in os.environ:
             os.environ['PS1'] = "(venv3) " + os.environ['PS1']
 
-        os.execvp(rest[0], rest)
+        self.execvp(rest[0], rest)
 
 
 
@@ -356,9 +357,8 @@ class docker(envkernel):
             'docker',
             'run',
             '--connection-file', '{connection_file}',
-            args.image,
-            #*[ '--mount={}'.format(x) for x in args.mount],
             *unknown_args,
+            args.image,
             '--',
             *kernel['argv'],
         ]
@@ -374,14 +374,15 @@ class docker(envkernel):
         #parser.add_argument('--mount', '-m', action='append', default=[],
         #                        help='mount to set up, format hostDir:containerMountPoint')
         parser.add_argument('--copy-workdir', default=False, action='store_true')
-        parser.add_argument('--workdir')
-        parser.add_argument('--pwd', action='store_true')
+        parser.add_argument('--pwd', action='store_true',
+                            help="Also mount the Jupyter working directory (containing the notebook) "
+                                 "in the image.  This is needed if you want to access data from this dir.")
+        parser.add_argument('--workdir', help='Location to mount working dir inside the container')
         parser.add_argument('--connection-file', help="Do not use, internal use.")
 
         args, unknown_args = parser.parse_known_args(argv)
 
         extra_mounts = [ ]
-        extra_ports = [ ]
 
         # working dir
         if args.pwd or args.workdir:
@@ -389,7 +390,7 @@ class docker(envkernel):
             if args.workdir:
                 workdir = args.workdir
             # src = host data, dst=container mountpoint
-            expose_mounts.extend(["--mount", "type=bind,source={},destination={},ro={}{}".format(os.getcwd(), workdir, 'false', ',copy' if args.copy_workdir else '')])
+            extra_mounts.extend(["--mount", "type=bind,source={},destination={},ro={}{}".format(os.getcwd(), workdir, 'false', ',copy' if args.copy_workdir else '')])
 
         cmd = [
             "docker", "run", "--rm", "-i",
@@ -439,7 +440,7 @@ class docker(envkernel):
         unknown_args.extend(extra_mounts)
         tmpdirs = []
         for i, arg in enumerate(unknown_args):
-            if '{workdir}' in arg and copy_workdir:
+            if '{workdir}' in arg and args.copy_workdir:
                 arg = arg + ',copy'
             arg.format(workdir=os.getcwd)
             if ',copy' in arg:
@@ -467,12 +468,12 @@ class docker(envkernel):
 
         # Run...
         LOG.info('docker: running cmd = %s', printargs(cmd))
-        ret = subprocess.call(cmd)
+        ret = self.execvp(cmd[0], cmd)
 
         # Clean up all temparary directories
         for tmpdir in tmpdirs:
             tmpdir.cleanup()
-        exit(ret)
+        return(ret)
 
 
 class singularity(envkernel):
@@ -505,8 +506,8 @@ class singularity(envkernel):
         argv, rest = split_doubledash(self.argv)
         parser = argparse.ArgumentParser()
         parser.add_argument('image', help='image name')
-        parser.add_argument('--mount', '-m', action='append', default=[],
-                            help='mount to set up, format hostDir:containerMountPoint')
+        #parser.add_argument('--mount', '-m', action='append', default=[],
+        #                    help='mount to set up, format hostDir:containerMountPoint')
         #parser.add_argument('--copy-pwd', default=False, action='store_true')
         parser.add_argument('--pwd', action='store_true')
         parser.add_argument('--connection-file')
@@ -560,15 +561,19 @@ class singularity(envkernel):
             ]
 
         LOG.debug('singularity: running cmd= %s', printargs(cmd))
-        subprocess.call(cmd)
+        ret = self.execvp(cmd[0], cmd)
+        return(ret)
+
+
 
 def main(argv=sys.argv):
     mod = argv[1]
     cls = globals()[mod]
     if len(argv) > 2 and argv[2] == 'run':
-        cls(argv[3:]).run()
+        return cls(argv[3:]).run()
     else:
         cls(argv[2:]).setup()
+        return 0
 
 if __name__ == '__main__':
-    main()
+    exit(main())
