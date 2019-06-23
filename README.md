@@ -85,7 +85,20 @@ These are envkernel-specific options:
   the spaces only once.  To find what the strings should be, copy form
   some existing kernels.  `--kernel=NAME` includes shortcut for some
   popular kernels.
+* `--kernel-template`: An already-installed kernel name which is used
+  as a template for the new envkernel.  This is searched using the
+  normal Jupyter search paths.  This kernel json file is loaded and
+  used as a template for all kernel options (`--language`,
+  `--kernel-cmd`, etc).
+* `--env=NAME=VALUE`.  Set these environment variables when running
+  the kernel.  These are actually just saved in the `kernel.json` file
+  under the `env` key, which is used by Jupyter itself.  So, this is
+  just a shorthand for adding variables there, it is not used at the
+  envkernel stage at all.
 
+Order of precedence of options (later in the list overrides earlier):
+`--kernel-template`, `--kernel`, `--kernel-cmd`, `--language`,
+`--python`, `--display-name`.
 
 
 
