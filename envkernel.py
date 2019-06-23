@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import copy
 import glob
 import json
 import logging
@@ -16,6 +17,34 @@ LOG = logging.getLogger('envkernel')
 LOG.setLevel(logging.DEBUG)
 logging.lastResort.setLevel(logging.DEBUG)
 
+
+KNOWN_KERNELS = {
+    'ipykernel': {
+        'language': 'python',
+        'argv': ['python',
+                 "-m",
+                 "ipykernel_launcher",
+                 "-f",
+                 "{connection_file}"],
+    },
+    'ir': {
+        'language': 'R',
+        'argv': ['R',
+                 '--slave',
+                 '-e',
+                 'IRkernel::main()',
+                 '--args',
+                 '{connection_file}'],
+    },
+    'imatlab': {
+        'language': 'matlab',
+        'argv':  ['python',
+                  '-m',
+                  'imatlab',
+                  '-f',
+                  '{connection_file}'],
+        }
+    }
 
 
 def split_doubledash(argv):
@@ -71,66 +100,66 @@ class envkernel():
                             help="Install kernel to this prefix")
         parser.add_argument('--replace', action='store_true',
                             help="Replace existing kernel")
-        parser.add_argument('--kernel', default='ipykernel',
+        parser.add_argument('--kernel',
                             help="Kernel to install, options are ipykernel or ir (default ipykernel).  This "
                                  "simply sets the --kernel-cmd and --language options to the proper "
                                  "values for these well-known kernels.  It could break, however. --kernel-cmd "
                                  "overrides this.")
-        parser.add_argument('--python', default='python',
+        parser.add_argument('--kernel-template')
+        parser.add_argument('--python', default=None,
                             help="Python command to run (default 'python')")
         parser.add_argument('--kernel-cmd',
                             help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
         parser.add_argument('--language',
                             help="Language to put into kernel file (default based on --kernel)")
-        args, unknown_args = parser.parse_known_args(sys.argv[2:])
+        args, unknown_args = parser.parse_known_args(self.argv)
         LOG.debug('setup: args: %s', args)
         LOG.debug('setup: unknown_args: %s', unknown_args)
         self.setup_args = args
         self.name = args.name
-        self.display_name = args.display_name
         self.user = args.user
         if args.sys_prefix:
             self.prefix = sys.prefix
         else:
             self.prefix = args.prefix
         self.replace = args.replace
-        self.python = args.python
-        if self.python == "SELF":
-            self.python = sys.executable
-        # Setting/detecting language and kernel command
+
+        # Setting the kernel.  Go through least-specific to
+        # most-specific, updating self.kernel with the latest (most
+        # specific) attributes.  If *nothing* is specificed, the
+        # --kernel option is taken as the default of ipykernel and
+        # sets the minimal working set of things.
+
+        # Existing kernel as a template.
+        self.kernel = { }
+        if args.kernel_template:
+            import jupyter_client.kernelspec
+            template = jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(args.template_kernel)
+            self.kernel = template.to_json()
+        # --kernel which sets to default well-known kernels.
+        if 'argv' not in self.kernel:
+            args.kernel = 'ipykernel'
+        if args.kernel:
+            if args.kernel in KNOWN_KERNELS:
+                self.kernel.update(copy.deepcopy(KNOWN_KERNELS[args.kernel]))
+            else:
+                LOG.critical("Unknown kernel: %s", args.kernel)
+        # kernelcmd
         if args.kernel_cmd:
-            self.language = 'python'
-            self.kernel_cmd = args.kernel_cmd.split()
-        elif args.kernel == 'ipykernel':
-            self.language = 'python'
-            self.kernel_cmd = [self.python,
-                               "-m",
-                               "ipykernel_launcher",
-                               "-f",
-                               "{connection_file}",
-                               ]
-        elif args.kernel == 'ir':
-            self.language = 'R'
-            self.kernel_cmd = ['R',
-                               '--slave',
-                               '-e',
-                               'IRkernel::main()',
-                               '--args',
-                               '{connection_file}']
-        elif args.kernel == 'imatlab':
-            self.language = 'matlab'
-            self.kernel_cmd = [self.python,
-                               '-m',
-                               'imatlab',
-                               '-f',
-                               '{connection_file}']
-        else:
-            LOG.critical("Unknown kernel: %s", args.kernel)
+            self.kernel['argv'] = args.kernel_cmd.split()
+        # language
         if args.language:
-            self.language = args.language
+            self.kernel['language'] = args.language
+        # python
+        if args.python == 'SELF':
+            self.kernel['argv'][0] = sys.executable
+        elif args.python:
+            self.kernel['argv'][0] = args.python
+        if args.display_name:
+            self.kernel['display_name'] = args.display_name
         # Copy logos from upstream packages, if exists
         self.logos = None
-        if self.language == 'python':
+        if self.kernel['language'] == 'python':
             try:
                 import ipykernel
                 ipykernel_dir = os.path.dirname(ipykernel.__file__)
@@ -144,6 +173,9 @@ class envkernel():
     def _get_parser(self):
         pass
 
+    def get_kernel(self):
+        return copy.deepcopy(self.kernel)
+
     def install_kernel(self, kernel, name, user=False, replace=None, prefix=None, logos=None):
         """Install a kernel (as given by json) to a kernel directory
 
@@ -155,13 +187,17 @@ class envkernel():
         import jupyter_client.kernelspec
         #jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec('python3').argv
 
+        # 'replace' has been depricated since 2015
+        if jupyter_client.version_info >= (4, 0, 0):
+            replace = None
+
         with tempfile.TemporaryDirectory(prefix='jupyter-kernel-secure-') \
           as kernel_dir:
             open(os.path.join(kernel_dir, 'kernel.json'), 'w').write(
                 json.dumps(kernel, sort_keys=True, indent=1))
             if self.logos:
                 if isinstance(self.logos, str) and os.path.isdir(self.logos):
-                    self.logos = os.path.listdir(self.logos)
+                    self.logos = os.listdir(self.logos)
                 for logo in self.logos:
                     shutil.copy(logo, kernel_dir)
             jupyter_client.kernelspec.KernelSpecManager().install_kernel_spec(
@@ -169,7 +205,10 @@ class envkernel():
                 user=user, replace=replace, prefix=prefix)
 
         LOG.info("")
-        LOG.info("  Kernel saved to {}".format(jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(name).resource_dir))
+        try:
+            LOG.info("  Kernel saved to {}".format(jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(name).resource_dir))
+        except jupyter_client.kernelspec.NoSuchKernel:
+            LOG.info("  Note: Kernel not detected with current search path.")
         LOG.info("  Command line: %s", kernel['argv'])
 
 
@@ -177,24 +216,16 @@ class envkernel():
 class lmod(envkernel):
     def setup(self):
         super().setup()
-        argv = [
+        kernel = self.get_kernel()
+        kernel['argv'] = [
             os.path.realpath(sys.argv[0]),
             self.__class__.__name__, 'run',
             *self.argv,
             '--',
-            #self.setup_args.python,
-            #"-m",
-            #"ipykernel_launcher",
-            #"-f",
-            #"{connection_file}",
-            *self.kernel_cmd,
+            *kernel['argv'],
         ]
-        kernel = {
-            "argv": argv,
-            "display_name": (self.display_name if self.display_name
-                      else "{}".format(' '.join(self.argv))),
-            "language": self.language,
-            }
+        if 'display_name' not in kernel:
+            kernel['display_name'] = "{}".format(' '.join(self.argv))
         self.install_kernel(kernel, name=self.name, user=self.user,
                             replace=self.replace, prefix=self.prefix)
 
@@ -245,24 +276,20 @@ class conda(envkernel):
         parser.add_argument('path')
         args, unknown_args = parser.parse_known_args(self.argv)
 
-        argv = [
+        kernel = self.get_kernel()
+        kernel['argv'] = [
             os.path.realpath(sys.argv[0]),
             self.__class__.__name__, 'run',
             *unknown_args,
             args.path,
             '--',
-            *self.kernel_cmd,
+            *kernel['argv'],
         ]
-        default_display_name = "{} ({}, {})".format(
+        if 'display_name' not in kernel:
+            kernel['display_name'] = "{} ({}, {})".format(
             os.path.basename(args.path.strip('/')),
             self.__class__.__name__,
             args.path)
-        kernel = {
-            "argv": argv,
-            "display_name": (self.display_name if self.display_name
-                      else default_display_name),
-            "language": self.language,
-            }
         self.install_kernel(kernel, name=self.name, user=self.user,
                             replace=self.replace, prefix=self.prefix)
 
@@ -323,7 +350,8 @@ class docker(envkernel):
         args, unknown_args = parser.parse_known_args(self.argv)
         LOG.debug('setup: %s', args)
 
-        argv = [
+        kernel = self.get_kernel()
+        kernel['argv'] = [
             os.path.realpath(sys.argv[0]),
             'docker',
             'run',
@@ -332,20 +360,10 @@ class docker(envkernel):
             #*[ '--mount={}'.format(x) for x in args.mount],
             *unknown_args,
             '--',
-            #self.setup_args.python,
-            #"-m",
-            #"ipykernel_launcher",
-            #"-f",
-            #"{connection_file}",
-            *self.kernel_cmd,
+            *kernel['argv'],
         ]
-
-        kernel = {
-            "argv": argv,
-            "display_name": (self.display_name if self.display_name
-                      else "Docker with {}".format(args.image)),
-            "language": self.language,
-            }
+        if 'display_name' not in kernel:
+            kernel['display_name'] = "Docker with {}".format(args.image),
         self.install_kernel(kernel, name=self.name, user=self.user,
                             replace=self.replace, prefix=self.prefix)
 
@@ -467,7 +485,8 @@ class singularity(envkernel):
         LOG.debug('setup: args: %s', args)
         LOG.debug('setup: unknown_args: %s', unknown_args)
 
-        argv = [
+        kernel = self.get_kernel()
+        kernel['argv'] = [
             os.path.realpath(sys.argv[0]),
             'singularity', 'run',
             '--connection-file', '{connection_file}',
@@ -475,21 +494,10 @@ class singularity(envkernel):
             *unknown_args,
             args.image,
             '--',
-            #self.setup_args.python,
-            #"-m",
-            #"ipykernel_launcher",
-            #"-f",
-            #"/connection.json",
-            #"{connection_file}",
-            *self.kernel_cmd,
+            *kernel['argv'],
         ]
-
-        kernel = {
-            "argv": argv,
-            "display_name": (self.display_name if self.display_name
-                      else "Singularity with {}".format(args.image)),
-            "language": self.language,
-            }
+        if 'display_name' not in kernel:
+            kernel['display_name'] = "Singularity with {}".format(args.image)
         self.install_kernel(kernel, name=self.name, user=self.user,
                             replace=self.replace, prefix=self.prefix)
 
@@ -554,13 +562,13 @@ class singularity(envkernel):
         LOG.debug('singularity: running cmd= %s', printargs(cmd))
         subprocess.call(cmd)
 
-def main():
-    mod = sys.argv[1]
+def main(argv=sys.argv):
+    mod = argv[1]
     cls = globals()[mod]
-    if len(sys.argv) > 2 and sys.argv[2] == 'run':
-        cls(sys.argv[3:]).run()
+    if len(argv) > 2 and argv[2] == 'run':
+        cls(argv[3:]).run()
     else:
-        cls(sys.argv[2:]).setup()
+        cls(argv[2:]).setup()
 
 if __name__ == '__main__':
     main()
