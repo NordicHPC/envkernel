@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="envkernel",
-    version="0.0.1",
+    version="0.0.2.dev0",
     author="Richard Darst",
     author_email="author@example.com",
     description="Jupyter kernels in docker, singularity, Lmod",
