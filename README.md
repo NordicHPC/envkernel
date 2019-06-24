@@ -8,12 +8,16 @@ could manually adjust the kernelspec files to set environment
 variables or run commands before starting the kernel, but envkernel
 automates this process.
 
+envkernel is equally usable for end users (on their own systems or
+clusters) to easily access environments in Jupyter, or sysadmins
+deploying this access on systems they administer.
+
 In general, there are two passes: First, install the kernel, e.g.:
 `envkernel virtualenv --name=my-venv /path/to/venv`.  This parses some
 options and writes a kernelspec file with the the `--name` you
 specify.  When Jupyter tries to start this kernel, it will execute the
 next phase.  When Jupyter tries to run the kernel, the kernelspec file
-will re-execcute `envkernel` in the run mode, which does whatever is
+will re-execute `envkernel` in the run mode, which does whatever is
 needed to set up the environment (in this case, sets `PATH` to the
 `/path/to/venv/bin/` that is needed).  Then it starts the normal
 IPython kernel.
@@ -62,14 +66,14 @@ These options directly map to normal Jupyter kernel install options:
 * `--name $name`: Name of kernel to install (**required**).
 * `--user`: Install kernel into user directory.
 * `--sys-prefix`: Install to the current Python's `sys.prefix` (the Python which is running envkernel).
-* `--prefix`: same as normal kernal install option.
+* `--prefix`: same as normal kernel install option.
 * `--display-name NAME`: Human-readable name.
 * `--replace`: Replace existing kernel (Jupyter option, unsure what this means).
 * `--language`: What language to tag this kernel (default `python`).
 
 These are envkernel-specific options:
 
-* `--python`: Python interperter to use when invoking inside the
+* `--python`: Python interpreter to use when invoking inside the
   environment. (Default `python`.  Unlike other kernels, this defaults
   to a relative path because the point of envkernel is to set up PATH
   properly.)  If this is the special value `SELF`, this will be replaced
@@ -105,8 +109,8 @@ Order of precedence of options (later in the list overrides earlier):
 
 ## Conda
 
-The Conda envkernel will activate Conda enviroments (set th `PATH`,
-`CPATH`, `LD_LIBRARY_PATH`, and `LIBRARY_PATH`) environment variables.
+The Conda envkernel will activate Conda environments (set the `PATH`,
+`CPATH`, `LD_LIBRARY_PATH`, and `LIBRARY_PATH` environment variables).
 This is done manually, if anyone knows a better way to do this, please
 inform us.
 
@@ -136,7 +140,8 @@ envkernel conda --name=NAME [envkernel options] conda-env-full-path
 
 ## Virtualenv
 
-This operates identically to `conda` mode, but with name `virtualenv`.
+This operates identically to `conda` mode, but with name `virtualenv`
+on virtualenvs.
 
 ### Virtualenv example
 
@@ -218,7 +223,7 @@ envkernel singularity --name=NAME [envkernel options] [singularity options] [ima
 
 Any unknown argument is passed directly to the `singularity exec`
 call, and thus can be any normal Singularity arguments.  The most
-useful Singularity options are (nothign envkernel specific here):
+useful Singularity options are (nothing envkernel specific here):
 
 * `--contain` or `-c`: Don't share any filesystems by default.
 
@@ -243,7 +248,7 @@ IPython kernel.
 
 Using envkernel is better than the naive (but functional) method of
 modifying a kernel to invoke a particular Python binary, because that
-will invoke the right Python interperter but not set relevant other
+will invoke the right Python interpreter but not set relevant other
 environment variables (so, for example, subprocesses won't be in the
 right environment).
 
@@ -360,3 +365,14 @@ nbgrader autograde --ExecutePreprocessor.kernel_name=testcourse-0.5.9 R1_Introdu
 
 * General
   * https://github.com/Anaconda-Platform/nb_conda_kernels - automatically create kernels from conda environments.  Uses a KernelSpecManager so possibly overrides everything at once, and also defaults to all kernels.
+  * The direct way to make a conda/virtualenv available in Jupyter is to activate the environment, then run `python -m ipykernel install [--user|--prefix=/path/to/other/env/]`.  But this does *not* set up `PATH`, so calling other executables doesn't work... thus the benefit of envkernel.
+  * [This thread](https://groups.google.com/forum/#!topic/jupyter/kQ9ZDX4rDEE) was the clue to getting a kernel inside Docker working.
+
+
+
+
+## Development and contributions
+
+Developed at Aalto University Science-IT.  Primary contact: Richard
+Darst.  Contributions welcome from anyone.  As of early 2019, it is
+almost at production quality.
