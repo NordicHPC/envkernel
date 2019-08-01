@@ -93,7 +93,8 @@ These are envkernel-specific options:
   as a template for the new envkernel.  This is searched using the
   normal Jupyter search paths.  This kernel json file is loaded and
   used as a template for all kernel options (`--language`,
-  `--kernel-cmd`, etc).
+  `--kernel-cmd`, etc).  Also, any other file in this directory (such
+  as logos) are copied to the new kernel (like kernel.js in irkernel).
 * `--env=NAME=VALUE`.  Set these environment variables when running
   the kernel.  These are actually just saved in the `kernel.json` file
   under the `env` key, which is used by Jupyter itself.  So, this is
