@@ -6,6 +6,7 @@ import glob
 import json
 import logging
 import os
+from os.path import join as pjoin
 import re
 import shlex
 import shutil
@@ -167,7 +168,7 @@ class envkernel():
             try:
                 import ipykernel
                 ipykernel_dir = os.path.dirname(ipykernel.__file__)
-                logos = glob.glob(os.path.join(ipykernel_dir, 'resources', '*'))
+                logos = glob.glob(pjoin(ipykernel_dir, 'resources', '*'))
                 self.logos = logos
             except ImportError:
                 LOG.debug("Could not automatically find ipykernel logos")
@@ -206,7 +207,7 @@ class envkernel():
             os.umask(umask)  # Restore previous, this is just how it works...
             os.chmod(kernel_dir, 0o777& (~umask))
             #
-            open(os.path.join(kernel_dir, 'kernel.json'), 'w').write(
+            open(pjoin(kernel_dir, 'kernel.json'), 'w').write(
                 json.dumps(kernel, sort_keys=True, indent=1))
             if self.logos:
                 if isinstance(self.logos, str) and os.path.isdir(self.logos):
@@ -326,7 +327,7 @@ class conda(envkernel):
         if not os.path.exists(path):
             LOG.critical("%s path does not exist: %s", self.__class__.__name__, path)
             raise RuntimeError("envkernel: {} path {} does not exist".format(self.__class__.__name__, path))
-        if not os.path.exists(os.path.join(path, 'bin')):
+        if not os.path.exists(pjoin(path, 'bin')):
             LOG.critical("%s bin does not exist: %s/bin", self.__class__.__name__, path)
             raise RuntimeError("envkernel: {} path {} does not exist".format(self.__class__.__name__, path+'/bin'))
 
@@ -334,10 +335,10 @@ class conda(envkernel):
 
     def _run(self, args, rest):
         path = args.path
-        os.environ['PATH']            = path_join(os.path.join(path, 'bin'    ), os.environ.get('PATH', None))
-        os.environ['CPATH']           = path_join(os.path.join(path, 'include'), os.environ.get('CPATH', None))
-        os.environ['LD_LIBRARY_PATH'] = path_join(os.path.join(path, 'lib'    ), os.environ.get('LD_LIBRARY_PATH', None))
-        os.environ['LIBRARY_PATH']    = path_join(os.path.join(path, 'lib'    ), os.environ.get('LIBRARY_PATH', None))
+        os.environ['PATH']            = path_join(pjoin(path, 'bin'    ), os.environ.get('PATH', None))
+        os.environ['CPATH']           = path_join(pjoin(path, 'include'), os.environ.get('CPATH', None))
+        os.environ['LD_LIBRARY_PATH'] = path_join(pjoin(path, 'lib'    ), os.environ.get('LD_LIBRARY_PATH', None))
+        os.environ['LIBRARY_PATH']    = path_join(pjoin(path, 'lib'    ), os.environ.get('LIBRARY_PATH', None))
 
         self.execvp(rest[0], rest)
 
@@ -347,7 +348,7 @@ class virtualenv(conda):
     def _run(self, args, rest):
         path = args.path
         os.environ.pop('PYTHONHOME', None)
-        os.environ['PATH'] = path_join(os.path.join(path, 'bin'), os.environ.get('PATH', None))
+        os.environ['PATH'] = path_join(pjoin(path, 'bin'), os.environ.get('PATH', None))
         if 'PS1' in os.environ:
             os.environ['PS1'] = "(venv3) " + os.environ['PS1']
 
