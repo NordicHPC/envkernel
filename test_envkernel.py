@@ -111,6 +111,15 @@ def test_help():
         assert mod in stdout, "%s not found in --help output"%mod
     assert p.returncode == 0
 
+def test_umask(d):
+    orig_umask = os.umask(0)
+    # Test multiple umasks, and kerneldir + kernel.json
+    for umask in [0, 0o022]:
+        os.umask(umask)
+        kern = install(d, "lmod MOD1")
+        assert os.stat(kern['dir']).st_mode & 0o777  ==  0o777&(~umask)
+        assert os.stat(pjoin(kern['dir'], 'kernel.json')).st_mode & 0o777  ==  0o666&(~umask)
+    os.umask(orig_umask)
 
 
 @all_modes()

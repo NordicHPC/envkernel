@@ -201,6 +201,11 @@ class envkernel():
 
         with tempfile.TemporaryDirectory(prefix='jupyter-kernel-secure-') \
           as kernel_dir:
+            # Apply umask
+            umask = os.umask(0)
+            os.umask(umask)  # Restore previous, this is just how it works...
+            os.chmod(kernel_dir, 0o777& (~umask))
+            #
             open(os.path.join(kernel_dir, 'kernel.json'), 'w').write(
                 json.dumps(kernel, sort_keys=True, indent=1))
             if self.logos:
