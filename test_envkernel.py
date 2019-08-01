@@ -96,11 +96,22 @@ def test_display_name(d, mode):
 
 @all_modes(['conda'])
 def test_template(d, mode):
+    os.environ['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
     subprocess.call("python -m ipykernel install --name=aaa-ipy --display-name=BBB --prefix=%s"%d, shell=True)
     #os.environ['ENVKERNEL_TESTPATH'] = os.path.join(d, 'share/jupyter/kernels')
-    os.environ['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
     kern = install(d, "%s --kernel-template aaa-ipy MOD1"%mode)
     assert kern['kernel']['display_name'] == 'BBB'
+
+@all_modes(['conda'])
+def test_template_copyfiles(d, mode):
+    os.environ['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
+    subprocess.call("python -m ipykernel install --name=aaa-ipy --display-name=BBB --prefix=%s"%d, shell=True)
+    f = open(pjoin(d, 'share/jupyter/kernels/', 'aaa-ipy', 'A.txt'), 'w')
+    f.write('LMNO')
+    f.close()
+    kern = install(d, "%s --kernel-template aaa-ipy MOD1"%mode)
+    assert os.path.exists(pjoin(kern['dir'], 'A.txt'))
+    assert open(pjoin(kern['dir'], 'A.txt')).read() == 'LMNO'
 
 def test_help():
     """Test that the global -h option works and prints module names"""

@@ -128,6 +128,7 @@ class envkernel():
         else:
             self.prefix = args.prefix
         self.replace = args.replace
+        self.copy_files = { }
 
         # Setting the kernel.  Go through least-specific to
         # most-specific, updating self.kernel with the latest (most
@@ -140,6 +141,8 @@ class envkernel():
         if args.kernel_template:
             import jupyter_client.kernelspec
             template = jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(args.kernel_template)
+            template_dir = template.resource_dir
+            self.copy_files.update({x: pjoin(template_dir, x) for x in os.listdir(template_dir)})
             self.kernel = json.loads(template.to_json())
         # --kernel which sets to default well-known kernels.
         if args.kernel is None and 'argv' not in self.kernel:
@@ -169,7 +172,10 @@ class envkernel():
                 import ipykernel
                 ipykernel_dir = os.path.dirname(ipykernel.__file__)
                 logos = glob.glob(pjoin(ipykernel_dir, 'resources', '*'))
-                self.logos = logos
+                for fullpath in logos:
+                    fname = os.path.basename(fullpath)
+                    if fname not in self.copy_files:
+                        self.copy_files[fname] = fullpath
             except ImportError:
                 LOG.debug("Could not automatically find ipykernel logos")
         # env
@@ -206,14 +212,13 @@ class envkernel():
             umask = os.umask(0)
             os.umask(umask)  # Restore previous, this is just how it works...
             os.chmod(kernel_dir, 0o777& (~umask))
-            #
+            # Copy files from template.  This also copies kernel.json,
+            # but we will overwrite that next.
+            for fname, fullpath in self.copy_files.items():
+                shutil.copy(fullpath, pjoin(kernel_dir, fname))
+            # Write kernel.json
             open(pjoin(kernel_dir, 'kernel.json'), 'w').write(
                 json.dumps(kernel, sort_keys=True, indent=1))
-            if self.logos:
-                if isinstance(self.logos, str) and os.path.isdir(self.logos):
-                    self.logos = os.listdir(self.logos)
-                for logo in self.logos:
-                    shutil.copy(logo, kernel_dir)
             jupyter_client.kernelspec.KernelSpecManager().install_kernel_spec(
                 kernel_dir, kernel_name=name,
                 user=user, replace=replace, prefix=prefix)
