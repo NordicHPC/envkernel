@@ -25,6 +25,8 @@ TEST_CONNECTION_FILE = """\
   "kernel_name": ""
 }
 """
+ALL_MODULES = ["conda", "virtualenv", "lmod", "docker", "singularity"]
+
 
 def install(d, argv, name='testkernel'):
     """Run envkernel setup, return dict with properties"""
@@ -70,7 +72,7 @@ def d():
 
 def all_modes(modes=None):
     if not modes:
-        modes = ["conda", "virtualenv", "lmod", "docker", "singularity"]
+        modes = ALL_MODULES
     return pytest.mark.parametrize("mode", modes)
 
 def is_sublist(list_, sublist):
@@ -99,6 +101,16 @@ def test_template(d, mode):
     os.environ['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
     kern = install(d, "%s --kernel-template aaa-ipy MOD1"%mode)
     assert kern['kernel']['display_name'] == 'BBB'
+
+def test_help():
+    """Test that the global -h option works and prints module names"""
+    p = subprocess.Popen("python -m envkernel -h", shell=True, stdout=subprocess.PIPE)
+    stdout = p.stdout.read().decode()
+    p.wait()
+    for mod in ALL_MODULES:
+        assert mod in stdout, "%s not found in --help output"%mod
+    assert p.returncode == 0
+
 
 
 @all_modes()
