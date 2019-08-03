@@ -365,6 +365,7 @@ nbgrader autograde --ExecutePreprocessor.kernel_name=testcourse-0.5.9 R1_Introdu
 ## See also
 
 * General
+  * [a2km, "Assistant to the kernel manager"](https://github.com/minrk/a2km) is a command line tool for dealing with kernels, including making kernels which activate conda/venv kernels.  And some other handy kernel manipulations stuff.  Unfortunately written in Ruby.
   * https://github.com/Anaconda-Platform/nb_conda_kernels - automatically create kernels from conda environments.  Uses a KernelSpecManager so possibly overrides everything at once, and also defaults to all kernels.
   * The direct way to make a conda/virtualenv available in Jupyter is to activate the environment, then run `python -m ipykernel install [--user|--prefix=/path/to/other/env/]`.  But this does *not* set up `PATH`, so calling other executables doesn't work... thus the benefit of envkernel.
   * [This thread](https://groups.google.com/forum/#!topic/jupyter/kQ9ZDX4rDEE) was the clue to getting a kernel inside Docker working.
