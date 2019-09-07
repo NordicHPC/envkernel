@@ -377,4 +377,5 @@ nbgrader autograde --ExecutePreprocessor.kernel_name=testcourse-0.5.9 R1_Introdu
 
 Developed at Aalto University Science-IT.  Primary contact: Richard
 Darst.  Contributions welcome from anyone.  As of early 2019, it is
-almost at production quality.
+mid 2019, it's usable but there may be bugs as it gets used in more
+sites.
