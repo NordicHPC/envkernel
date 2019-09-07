@@ -5,3 +5,4 @@ Untitled*.ipynb
 /dist/
 /envkernel.egg-info/
 __pycache__/
+.cache
