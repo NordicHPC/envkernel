@@ -1,11 +1,20 @@
 import setuptools
 
+# Get version
+print("in setup.py")
+main_ns = {}
+with open('envkernel.py') as ver_file:
+    exec(ver_file.read(), main_ns)
+
+print(main_ns['version_info'], main_ns['__version__'])
+
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="envkernel",
-    version="0.0.2.dev0",
+    version=main_ns['__version__'],
     author="Richard Darst",
     author_email="rkd@zgib.net",
     description="Jupyter kernels manipulation and in other environments (docker, Lmod, etc.)",
