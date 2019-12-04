@@ -164,7 +164,7 @@ Note: docker has not been fully tested, but has been reported to work.
 ### Docker example
 
 ```shell
-envkernel singularity --name=NAME  --pwd --bind /m/jh/coursedata/:/coursedata /path/to/image.simg
+envkernel docker --name=NAME  --pwd --bind /m/jh/coursedata/:/coursedata /path/to/image.simg
 ```
 
 ### Docker mode arguments
@@ -172,7 +172,7 @@ envkernel singularity --name=NAME  --pwd --bind /m/jh/coursedata/:/coursedata /p
 General invocation:
 
 ```shell
-envkernel singularity --name=NAME [envkernel options] [singularity options] [image]
+envkernel docker --name=NAME [envkernel options] [singularity options] [image]
 ```
 
 * `image`: Required positional argument: name of docker image to run.
