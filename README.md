@@ -172,7 +172,7 @@ envkernel docker --name=NAME  --pwd --bind /m/jh/coursedata/:/coursedata /path/t
 General invocation:
 
 ```shell
-envkernel docker --name=NAME [envkernel options] [singularity options] [image]
+envkernel docker --name=NAME [envkernel options] [docker options] [image]
 ```
 
 * `image`: Required positional argument: name of docker image to run.
