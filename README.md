@@ -35,13 +35,13 @@ Available modes:
 
 ## Installation
 
-```
-pip install https://github.com/NordicHPC/envkernel/archive/master.zip
-```
+Available on the PiPI: `pip install envkernel`.
 
-Not currently distributed through other channels, but hopefully this
-will change.  This is a single-file script and can be copied just like
-this.  The script must be available both when a kernel is set up, and
+Or, you can install latest from Github in the usual way: `pip install https://github.com/NordicHPC/envkernel/archive/master.zip`
+
+This is a single-file script and can be copied directly and added to
+`PATH` as well.  By design, there are no dependencies except the basic
+Jupyter client (not notebook or any UI).  The script must be available both when a kernel is set up, and
 each time the kernel is started (and currently assumes they are in the
 same location).
 
