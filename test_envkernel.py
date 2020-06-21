@@ -58,10 +58,7 @@ def run(d, kern, execvp=lambda _argv0, argv: 0):
     clsname = argv[1]
     assert argv[2] == 'run'
     # Replace connecton file
-    def replace_conn_file(x):
-        if x == '{connection_file}':  return connection_file
-        else:  return x
-    argv = [ replace_conn_file(x) for x in argv ]
+    argv = [ replace_conn_file(x, connection_file) for x in argv ]
     # Setup object, override the execvp for the function, run.
     ek = getattr(envkernel, clsname)(argv[3:])
     ek.execvp = execvp
@@ -72,6 +69,14 @@ def d():
     """Temporary directory for test"""
     with tempfile.TemporaryDirectory() as dir_:
         yield dir_
+
+def replace_conn_file(arg, connection_file):
+    if isinstance(arg, list):
+        return [ replace_conn_file(x, connection_file) for x in arg ]
+    if arg == '{connection_file}':
+        return connection_file
+    else:
+        return arg
 
 def all_modes(modes=None):
     if not modes:
