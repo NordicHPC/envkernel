@@ -163,6 +163,31 @@ def test_env(d, mode):
     assert kern['kernel']['env']['CCC'] == 'DDD'
 
 
+def test_recursive_run(d):
+    """Test envkernel being called on itself.
+
+    Roughly runs this, which :
+
+    envkernel lmod --name=test1 LMOD
+    envkernel conda --kernel-template=test1 --name=test1 CPATH
+    """
+    # Must set JUPYTER_PATH to be able to load the new kernel template
+    os.environ['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
+    kern1 = install(d, "lmod LMOD", name='test1')
+    #print(kern1['kernel']['argv'])
+    # Test the conda install
+    CPATH = pjoin(d, 'test-conda')
+    os.mkdir(CPATH)
+    os.mkdir(pjoin(CPATH, 'bin'))
+    kern2 = install(d, "conda --kernel-template=test1 %s"%CPATH, name='test1')
+    #print(kern2['kernel']['argv'])
+    def test_exec(_file, _args):
+        #print(kern1['kernel']['argv'])
+        # Exclude the last argument, which is the connection file
+        assert _args[:-1] == kern1['kernel']['argv'][:-1]
+    run(d, kern2, test_exec)
+
+
 
 # Languages
 @all_modes()

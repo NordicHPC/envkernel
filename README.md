@@ -336,6 +336,28 @@ envkernel parses and manipulates these arguments however is needed.
 
 
 
+## Running multiple modes
+
+envkernel doesn't support running multiple modes - for example,
+`conda` and `lmod` at the same time.  But, because of the general
+nature, you should be able to layer it yourself.  The following
+example uses the `conda` mode to create an envkernel.  Then, it uses
+`--kernel-template` to re-read that kernel and wrap it in `lmod`:
+
+```
+envkernel conda --name=test1 conda_path
+envkernel lmod --name=test1 --kernel-template=test1 lmod_module
+```
+
+There is nothing really special here, it is layering one envkernel
+execution on top of another.  If you notice problems with this, please
+try to debug a bit and then send feedback/improvements, this is a
+relatively new feature.
+
+
+
+
+
 ## Use with nbgrader
 
 envkernel was orginally inspired by the need for nbgrader to securely
