@@ -51,14 +51,18 @@ KNOWN_KERNELS = {
     }
 
 
-def split_doubledash(argv):
+def split_doubledash(argv, maxsplit=None):
     """Split on '--', for spearating arguments"""
     new = [ ]
     last = 0
+    nsplit = 0
     for i, x in enumerate(argv):
         if x == '--':
             new.append(argv[last:i])
             last = i + 1
+            nsplit += 1
+        if maxsplit is not None and nsplit >= maxsplit:
+            break
     new.append(argv[last:])
     return new
 
@@ -256,7 +260,7 @@ class lmod(envkernel):
 
         before '--': the modules to load
         after '--': the Python command to run after loading"""
-        argv, rest = split_doubledash(self.argv)
+        argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
         parser.add_argument('--purge', action='store_true', default=False, help="Purge existing modules first")
         parser.add_argument('module', nargs='+')
@@ -320,7 +324,7 @@ class conda(envkernel):
 
         before '--': the modules to load
         after '--': the Python command to run after loading"""
-        argv, rest = split_doubledash(self.argv)
+        argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
         #parser.add_argument('--purge', action='store_true', default=False, help="Purge existing modules first")
         parser.add_argument('path')
@@ -389,7 +393,7 @@ class docker(envkernel):
                             replace=self.replace, prefix=self.prefix)
 
     def run(self):
-        argv, rest = split_doubledash(self.argv)
+        argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
         parser.add_argument('image', help='Dcker image name')
         #parser.add_argument('--mount', '-m', action='append', default=[],
@@ -524,7 +528,7 @@ class singularity(envkernel):
                             replace=self.replace, prefix=self.prefix)
 
     def run(self):
-        argv, rest = split_doubledash(self.argv)
+        argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
         parser.add_argument('image', help='image name')
         #parser.add_argument('--mount', '-m', action='append', default=[],
