@@ -38,6 +38,7 @@ def install(d, argv, name='testkernel'):
     return get(d, name)
 
 def get(d, name):
+    """From an installed kernel, return dict with properties for testing."""
     dir_ = pjoin(d, 'share/jupyter/kernels/', name)
     kernel = json.load(open(pjoin(dir_, 'kernel.json')))
     return {
@@ -48,6 +49,8 @@ def get(d, name):
         }
 
 def run(d, kern, execvp=lambda _argv0, argv: 0):
+    """Start envkernel in "run" mode to see if it can run successfully.
+    """
     connection_file = pjoin(d, 'connection.json')
     open(connection_file, 'w').write(TEST_CONNECTION_FILE)
     # Do basic tests
