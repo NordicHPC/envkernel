@@ -95,6 +95,11 @@ These are envkernel-specific options:
   used as a template for all kernel options (`--language`,
   `--kernel-cmd`, etc).  Also, any other file in this directory (such
   as logos) are copied to the new kernel (like kernel.js in irkernel).
+* `--kernel-make-path-relative` removes an absolute path from the
+  kernel command (mainly useful with `--kernel-template`).  This would
+  be useful, for example, where you are setting up an lmod install and
+  the absolute path of the module might change, but you want it to
+  always run Python relative to that module anyway.
 * `--env=NAME=VALUE`.  Set these environment variables when running
   the kernel.  These are actually just saved in the `kernel.json` file
   under the `env` key, which is used by Jupyter itself.  So, this is

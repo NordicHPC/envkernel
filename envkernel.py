@@ -119,6 +119,9 @@ class envkernel():
                             help="Python command to run (default 'python')")
         parser.add_argument('--kernel-cmd',
                             help="Kernel command to run, separated by spaces.  If this is given, --python is not used.")
+        parser.add_argument('--kernel-make-path-relative', action='store_true',
+                            help="Remove any leading absolute path from the kernel command.  Mainly "
+                                 "useful with --kernel-template.")
         parser.add_argument('--language',
                             help="Language to put into kernel file (default based on --kernel)")
         parser.add_argument('--env', action='append', default=[],
@@ -172,6 +175,9 @@ class envkernel():
             self.kernel['argv'][0] = args.python
         if args.display_name:
             self.kernel['display_name'] = args.display_name
+        # Make the kernel path relative
+        if args.kernel_make_path_relative:
+            self.kernel['argv'][0] = self.kernel['argv'][0].rsplit('/', 1)[-1]
         # Copy logos from upstream packages, if exists
         self.logos = None
         if self.kernel['language'] == 'python':

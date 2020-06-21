@@ -121,6 +121,17 @@ def test_template_copyfiles(d, mode):
     assert os.path.exists(pjoin(kern['dir'], 'A.txt'))
     assert open(pjoin(kern['dir'], 'A.txt')).read() == 'LMNO'
 
+@all_modes(['conda'])
+def test_template_make_path_relative(d, mode):
+    os.environ['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
+    subprocess.call("python -m ipykernel install --name=aaa-ipy --display-name=BBB --prefix=%s"%d, shell=True)
+    # First test it without, ensure it has the full path
+    kern = install(d, "%s --kernel-template aaa-ipy MOD1"%mode)
+    assert kern['k'][0] != 'python' # This is an absolete path
+    # Now test it with --kernel-make-path-relative and ensure it's relative
+    kern = install(d, "%s --kernel-template aaa-ipy --kernel-make-path-relative MOD1"%mode)
+    assert kern['k'][0] == 'python' # This is an absolete path
+
 def test_help():
     """Test that the global -h option works and prints module names"""
     p = subprocess.Popen("python -m envkernel -h", shell=True, stdout=subprocess.PIPE)
