@@ -41,7 +41,9 @@ Or, you can install latest from Github in the usual way: `pip install https://gi
 
 This is a single-file script and can be copied directly and added to
 `PATH` as well.  By design, there are no dependencies except the basic
-Jupyter client (not notebook or any UI).  The script must be available both when a kernel is set up, and
+Jupyter client (not notebook or any UI), and that is only needed at
+kernel-setup time, not at kernel-runtime.  The script must be
+available both when a kernel is set up, and
 each time the kernel is started (and currently assumes they are in the
 same location).
 
