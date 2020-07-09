@@ -401,7 +401,7 @@ class docker(envkernel):
     def run(self):
         argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
-        parser.add_argument('image', help='Dcker image name')
+        parser.add_argument('image', help='Docker image name')
         #parser.add_argument('--mount', '-m', action='append', default=[],
         #                        help='mount to set up, format hostDir:containerMountPoint')
         parser.add_argument('--copy-workdir', default=False, action='store_true')
