@@ -291,6 +291,39 @@ envkernel lmod --name=NAME [envkernel options] [module ...]
 
 
 
+## Other kernels
+
+Envkernel isn't specific to the IPython kernel.  It defaults to
+ipykernel, but by using the `--kernel-template` option you can make it
+work with any other kernel without having to understand the internals.
+First, you install your other kernel normally, with some name (in this
+case, `R-3.6.1`).  Then, you run envkernel with
+`--kernel-template=R-3.6.1`, which clones that (with all its support
+files from the kernel directory, argv, and so on), and (in this case)
+saves it to the same name with the `--name=R-3.6.1` option.
+
+```console
+# Load modules and install the IRKernel normally, without envkernel
+$ module load r-irkernel/1.1-python3
+$ module load jupyterhub/live
+$ Rscript -e "library(IRkernel); IRkernel::installspec(name='R-3.6.1', displayname='R 3.6 module')"
+
+# Use envkernel --kernel-template
+#  - Do the normal Lmod envkernel setup
+#  - copy the existing kernel, incuding argv, kernel.js, icon, and display name
+#  - Save it again, to the same name, with envkernel wrapper.
+envkernel lmod --user --kernel-template=R-3.6.1 --name=R-3.6.1  r-irkernel/1.1-python3
+```
+
+This way, you can wrap any arbitrary kernel to run under envkernel.
+Also, you can always use `--kernel-cmd` to explicitly set your kernel
+command to whatever is needed for any other kernel (but you have to
+figure out that command yourself...).
+
+
+
+
+
 ## How it works
 
 When envkernel first runs, it sets up a kernelspec that will re-invoke
@@ -398,6 +431,10 @@ nbgrader autograde --ExecutePreprocessor.kernel_name=testcourse-0.5.9 R1_Introdu
   * https://github.com/Anaconda-Platform/nb_conda_kernels - automatically create kernels from conda environments.  Uses a KernelSpecManager so possibly overrides everything at once, and also defaults to all kernels.
   * The direct way to make a conda/virtualenv available in Jupyter is to activate the environment, then run `python -m ipykernel install [--user|--prefix=/path/to/other/env/]`.  But this does *not* set up `PATH`, so calling other executables doesn't work... thus the benefit of envkernel.
   * [This thread](https://groups.google.com/forum/#!topic/jupyter/kQ9ZDX4rDEE) was the clue to getting a kernel inside Docker working.
+
+* The following commands are essential for kernel management
+  * `jupyter kernelspec list`
+  * `jupyter --paths` - each `$data_path/kernels` dir is searched for kernels.
 
 
 
