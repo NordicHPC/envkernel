@@ -194,7 +194,10 @@ Any unknown argument is passed directly to the `docker run` call, and
 thus can be any normal Docker argument.  If `,copy` is included in the
 `--mount` command options, the directory will be copied before
 mounting.  This may be useful if the directory is on a network mount
-which the root docker can't access.
+which the root docker can't access.  It is recommended to always use
+the form of options with `=`, such as `--option=X`, rather than
+separating them with a space, to avoid problems with argument/option
+detection.
 
 
 
@@ -230,8 +233,11 @@ envkernel singularity --name=NAME [envkernel options] [singularity options] [ima
   default if you don't `--contain`.
 
 Any unknown argument is passed directly to the `singularity exec`
-call, and thus can be any normal Singularity arguments.  The most
-useful Singularity options are (nothing envkernel specific here):
+call, and thus can be any normal Singularity arguments.  It is
+recommended to always use the form of options with `=`, such as
+`--bind=X`, rather than separating them with a space, to avoid
+problems with argument/option detection.  The most useful Singularity
+options are (nothing envkernel specific here):
 
 * `--contain` or `-c`: Don't share any filesystems by default.
 
