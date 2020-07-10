@@ -302,11 +302,11 @@ case, `R-3.6.1`).  Then, you run envkernel with
 files from the kernel directory, argv, and so on), and (in this case)
 saves it to the same name with the `--name=R-3.6.1` option.
 
-```console
+```shell
 # Load modules and install the IRKernel normally, without envkernel
-$ module load r-irkernel/1.1-python3
-$ module load jupyterhub/live
-$ Rscript -e "library(IRkernel); IRkernel::installspec(name='R-3.6.1', displayname='R 3.6 module')"
+module load r-irkernel/1.1-python3
+module load jupyterhub/live
+Rscript -e "library(IRkernel); IRkernel::installspec(name='R-3.6.1', displayname='R 3.6 module')"
 
 # Use envkernel --kernel-template
 #  - Do the normal Lmod envkernel setup
