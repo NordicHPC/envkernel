@@ -25,7 +25,20 @@ TEST_CONNECTION_FILE = """\
   "kernel_name": ""
 }
 """
-ALL_MODULES = ["conda", "virtualenv", "lmod", "docker", "singularity"]
+
+# These modules re-invoke envkernel at runtime.
+ALL_RECURSIVE_MODULES = [
+    "conda",
+    "virtualenv",
+    "lmod",
+    "docker",
+    "singularity",
+    ]
+# These modules may not re-invoke envkernel at runtime, so they need
+# to be tested slightly differently.
+ALL_MODULES = ALL_RECURSIVE_MODULES + [
+    "loginshell",
+    ]
 
 
 def install(d, argv, name='testkernel'):
@@ -38,15 +51,33 @@ def install(d, argv, name='testkernel'):
     return get(d, name)
 
 def get(d, name):
-    """From an installed kernel, return dict with properties for testing."""
+    """From an installed kernel, return dict with properties for testing.
+
+    kernel: raw decoded JSON object
+       kernel['args']: full kernel argv, split into ek and k below.
+    dir: the directory it was installed to
+    ek: envkernel options (used when invoking again at runtime)
+    k: kernel options
+
+    """
     dir_ = pjoin(d, 'share/jupyter/kernels/', name)
     kernel = json.load(open(pjoin(dir_, 'kernel.json')))
-    return {
+    data = {
         'dir': dir_,
         'kernel': kernel,
         'ek': envkernel.split_doubledash(kernel['argv'])[0],
-        'k': envkernel.split_doubledash(kernel['argv'])[1],
+        'k': envkernel.split_doubledash(kernel['argv'])[1]    if '--' in kernel['argv'] else None,
         }
+    # For loginshell, there is no -- in the argv, so we can't split
+    # between ek (envkernel args) and k (kernel args) Work around this
+    # by manually handling this case, and splitting on '-c'.
+    if '--' not in kernel['argv']:
+        if '-c' in kernel['argv']:
+            c_arg = data['ek'].index('-c')
+            # 'k' is joined into one argument loginshell
+            data['k']  = shlex.split(data['ek'][c_arg+1:][0])
+            data['ek'] = data['ek'][:c_arg+1]
+    return data
 
 def run(d, kern, execvp=lambda _argv0, argv: 0):
     """Start envkernel in "run" mode to see if it can run successfully.
@@ -78,6 +109,12 @@ def replace_conn_file(arg, connection_file):
     else:
         return arg
 
+def all_recursive_modes(modes=None):
+    """All the different modes that re-invoke envkernel"""
+    if not modes:
+        modes = ALL_RECURSIVE_MODULES
+    return pytest.mark.parametrize("mode", modes)
+
 def all_modes(modes=None):
     if not modes:
         modes = ALL_MODULES
@@ -91,7 +128,7 @@ def is_sublist(list_, sublist):
 
 
 
-@all_modes()
+@all_recursive_modes()
 def test_basic(d, mode):
     kern = install(d, "%s MOD1"%mode)
     #assert kern['argv'][0] == 'envkernel'  # defined above
@@ -271,6 +308,22 @@ def test_singularity(d):
     assert kern['ek'][1:3] == ['singularity', 'run']
     assert kern['ek'][-1] == '/PATH/TO/IMAGE2'
     assert '--some-arg=AAA' in kern['ek']
+
+def test_loginshell(d):
+    kern = install(d, "loginshell --kernel-cmd=./KERNEL")
+    #assert kern['argv'][0] == 'envkernel'  # defined above
+    print(kern)
+    assert kern['ek'][0] == 'bash'
+    assert '-l' in kern['ek']
+    assert '-c' in kern['ek']
+    c_arg = kern['kernel']['argv'].index('-c')
+    assert kern['kernel']['argv'][c_arg:c_arg+2] == ['-c', './KERNEL']
+
+    kern = install(d, "loginshell --shell=zsh")
+    assert kern['ek'][0] == 'zsh'
+
+    kern = install(d, "loginshell --norc")
+    assert '--norc' in kern['ek']
 
 
 

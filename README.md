@@ -291,6 +291,34 @@ envkernel lmod --name=NAME [envkernel options] [module ...]
 
 
 
+## Login shell
+
+This runs the kernel through a login shell, for example `bash -l
+-c [kernel-cmd]`.
+
+### Login shell example
+
+```shell
+envkernel loginshell --name=python3-clean
+```
+
+### Login shell arguments
+
+```shell
+envkernel loginshell --name=NAME [envkernel options] [login shell options]
+```
+
+* `--shell=SHELL`.  Shell to invoke, default=`bash`.  The shell has to
+  accept the `-l` (to amke it a login shell) and `-c` options (to
+  accept the kernel command to run).
+
+Any other unknown argument will be passed through to the shell, so you
+could, for example, use `--norc` for bash.
+
+
+
+
+
 ## Other kernels
 
 Envkernel isn't specific to the IPython kernel.  It defaults to
