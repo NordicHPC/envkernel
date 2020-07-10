@@ -388,8 +388,8 @@ class docker(envkernel):
             'docker',
             'run',
             '--connection-file', '{connection_file}',
-            *unknown_args,
             args.image,
+            *unknown_args,
             '--',
             *kernel['argv'],
         ]
@@ -523,8 +523,8 @@ class singularity(envkernel):
             'singularity', 'run',
             '--connection-file', '{connection_file}',
             #*[ '--mount={}'.format(x) for x in args.mount],
-            *unknown_args,
             args.image,
+            *unknown_args,
             '--',
             *kernel['argv'],
         ]
