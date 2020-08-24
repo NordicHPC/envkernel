@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from os.path import join as pjoin
 import pytest
@@ -140,6 +141,35 @@ def test_help():
     for mod in ALL_MODULES:
         assert mod in stdout, "%s not found in --help output"%mod
     assert p.returncode == 0
+
+def test_logging(d, caplog):
+    """Test that the global -v option works and increases debugging
+
+    Run first without -v and make sure some stuff isn't printed.
+    Then, run with -v and ensure that the argument processing is output.
+    """
+    cmd = "python3 -m envkernel lmod --name=ABC --display-name=AAA MOD1 --prefix=%s"%d
+    print(d)
+    env = os.environ.copy()
+    env['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
+    # First, test non-verbose (should have minimal output)
+    p = subprocess.Popen(cmd, env=env,
+                         shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout = p.stdout.read().decode()
+    p.wait()
+    print(stdout)
+    assert 'Namespace' not in stdout
+    assert 'kernel-specific' not in stdout
+    assert 'Command line:' in stdout
+    # Now test verbose (should have some debugging info)
+    p = subprocess.Popen(cmd+' -v', env=env,
+                         shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout = p.stdout.read().decode()
+    p.wait()
+    #print(stdout)
+    assert 'Namespace' in stdout
+    assert 'kernel-specific' in stdout
+    assert 'Command line:' in stdout
 
 def test_umask(d):
     orig_umask = os.umask(0)

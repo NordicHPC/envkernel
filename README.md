@@ -75,6 +75,9 @@ These options directly map to normal Jupyter kernel install options:
 
 These are envkernel-specific options:
 
+* `--verbose`, `-v`: Print more debugging information when installing
+  the kernel.  It is always in verbose mode when actually running the
+  kernel.
 * `--python`: Python interpreter to use when invoking inside the
   environment. (Default `python`.  Unlike other kernels, this defaults
   to a relative path because the point of envkernel is to set up PATH
