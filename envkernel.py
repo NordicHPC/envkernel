@@ -15,7 +15,7 @@ import sys
 import tempfile
 
 LOG = logging.getLogger('envkernel')
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 logging.lastResort.setLevel(logging.DEBUG)
 
 
@@ -127,9 +127,14 @@ class envkernel():
         parser.add_argument('--env', action='append', default=[],
                             help="Environment to add, format NAME=VAL.  Can be given multiple times. "
                                  "These are statically embedded in the kernel.json file")
+        parser.add_argument('--verbose', '-v', action='store_true',
+                                  help="Print more debugging information")
         args, unknown_args = parser.parse_known_args(self.argv)
-        LOG.debug('setup: args: %s', args)
-        LOG.debug('setup: unknown_args: %s', unknown_args)
+        if args.verbose:
+            LOG.setLevel(logging.DEBUG)
+
+        LOG.debug('setup: envkernel setup args: %s', args)
+        LOG.debug('setup: kernel-specific args: %s', unknown_args)
         self.setup_args = args
         self.name = args.name
         self.user = args.user
@@ -243,6 +248,13 @@ class envkernel():
             LOG.info("  Note: Kernel not detected with current search path.")
         LOG.info("  Command line: %s", kernel['argv'])
 
+    def run(self):
+        """Hook that gets run before kernel invoked"""
+        # User does not directly see this (except interleaved in
+        # normal jupyter logging output), so we can set it to debug
+        # by default.
+        LOG.setLevel(logging.DEBUG)
+
 
 
 class lmod(envkernel):
@@ -266,6 +278,7 @@ class lmod(envkernel):
 
         before '--': the modules to load
         after '--': the Python command to run after loading"""
+        super().run()
         argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
         parser.add_argument('--purge', action='store_true', default=False, help="Purge existing modules first")
@@ -330,6 +343,7 @@ class conda(envkernel):
 
         before '--': the modules to load
         after '--': the Python command to run after loading"""
+        super().run()
         argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
         #parser.add_argument('--purge', action='store_true', default=False, help="Purge existing modules first")
@@ -399,6 +413,7 @@ class docker(envkernel):
                             replace=self.replace, prefix=self.prefix)
 
     def run(self):
+        super().run()
         argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
         parser.add_argument('image', help='Docker image name')
@@ -534,6 +549,7 @@ class singularity(envkernel):
                             replace=self.replace, prefix=self.prefix)
 
     def run(self):
+        super().run()
         argv, rest = split_doubledash(self.argv, 1)
         parser = argparse.ArgumentParser()
         parser.add_argument('image', help='image name')
