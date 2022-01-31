@@ -292,14 +292,14 @@ def test_docker(d):
     kern = install(d, "docker --some-arg=AAA IMAGE1")
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == ['docker', 'run']
-    assert kern['ek'][-1] == 'IMAGE1'
+    assert kern['ek'][-2] == 'IMAGE1'
     assert '--some-arg=AAA' in kern['ek']
 
 def test_singularity(d):
     kern = install(d, "singularity --some-arg=AAA /PATH/TO/IMAGE2")
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == ['singularity', 'run']
-    assert kern['ek'][-1] == '/PATH/TO/IMAGE2'
+    assert kern['ek'][-2] == '/PATH/TO/IMAGE2'
     assert '--some-arg=AAA' in kern['ek']
 
 
