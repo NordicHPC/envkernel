@@ -84,7 +84,10 @@ These are envkernel-specific options:
   properly.)  If this is the special value `SELF`, this will be replaced
   with the value of `sys.executable` of the Python running envkernel.
 * `--kernel=NAME`: Auto-set `--language` and `--kernel-cmd` to
-  that needed for these well-known kernels.  Options include `ipykernel` (the default) or `ir`.
+  that needed for these well-known kernels.  Options include
+  `ipykernel` (the default), `ir`, or `imatlab`.  But all of these
+  hard-code a kernel command line and could possibly be wrong some
+  day.
 * `--kernel-cmd`: a string which is the kernel to start - space
   separated, no shell quoting, it will be split when saving.  The
   default is `python -m ipykernel_launcher -f {connection_file}`,
@@ -428,6 +431,15 @@ Run the autograding:
 nbgrader autograde --ExecutePreprocessor.kernel_name=testcourse-0.5.9 R1_Introduction
 
 ```
+
+
+
+
+
+## Kernel quick reference
+
+* `jupyter kernelspec list`
+* `jupyter kernelspec remove NAME`
 
 
 
