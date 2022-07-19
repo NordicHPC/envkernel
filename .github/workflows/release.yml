@@ -1,0 +1,30 @@
+name: pypi-publish
+on:
+  release:
+    types: [created]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # https://github.com/actions/setup-python
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt -r requirements-dev.txt
+          pip install .
+          pip install setuptools wheel twine
+      - uses: rkdarst/action-verify-python-version@main
+      - name: Build
+        run: |
+          python setup.py sdist bdist_wheel
+      #- name: Upload to PyPI
+      #  env:
+      #    TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+      #    TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      #  run: |
+      #    twine upload dist/*
