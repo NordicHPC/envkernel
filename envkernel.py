@@ -19,7 +19,7 @@ LOG.setLevel(logging.INFO)
 logging.lastResort.setLevel(logging.DEBUG)
 
 
-version_info = (1, 1, 0, 'dev0')
+version_info = (1, 1, 0,) # 'dev0')
 __version__ = '.'.join(str(x) for x in version_info)
 
 KNOWN_KERNELS = {
