@@ -288,7 +288,7 @@ class lmod(envkernel):
         #print(args)
         #print('stderr', args, file=sys.stderr)
         LOG.debug('run: args: %s', args)
-        LOG.debug('run: unknown_args: %s', unknown_args)
+        LOG.debug('run: remaining args: %s', unknown_args)
 
         #LMOD_INIT = os.environ['LMOD_PKG']+'/init/env_modules_python.py'
         #exec(compile(open(LMOD_INIT).read(), LMOD_INIT, 'exec'))
@@ -353,7 +353,7 @@ class conda(envkernel):
         #print(args)
         #print('stderr', args, file=sys.stderr)
         LOG.debug('run: args: %s', args)
-        LOG.debug('run: unknown_args: %s', unknown_args)
+        LOG.debug('run: remaining args: %s', unknown_args)
 
         path = args.path
         if not os.path.exists(path):
@@ -530,7 +530,7 @@ class singularity(envkernel):
         parser.add_argument('image')
         args, unknown_args = parser.parse_known_args(self.argv)
         LOG.debug('setup: args: %s', args)
-        LOG.debug('setup: unknown_args: %s', unknown_args)
+        LOG.debug('setup: remaining args: %s', unknown_args)
 
         kernel = self.get_kernel()
         kernel['argv'] = [
@@ -560,7 +560,7 @@ class singularity(envkernel):
         parser.add_argument('--connection-file')
         args, unknown_args = parser.parse_known_args(argv)
         LOG.debug('run: args: %s', args)
-        LOG.debug('run: unknown_args: %s', unknown_args)
+        LOG.debug('run: remaining args: %s', unknown_args)
         LOG.debug('run: rest: %s', rest)
 
         extra_args = [ ]
