@@ -613,6 +613,30 @@ class singularity(envkernel):
 
 
 
+class loginshell(envkernel):
+    def setup(self):
+        super().setup()
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--shell', default="bash")
+        args, unknown_args = parser.parse_known_args(self.argv)
+
+        kernel = self.get_kernel()
+        original_argv = printargs(kernel['argv'])
+        kernel['argv'] = [
+            args.shell,
+            "-l",
+            *unknown_args,
+            "-c",
+            printargs(kernel['argv']),
+        ]
+        if 'display_name' not in kernel:
+            kernel['display_name'] = "{} with login shell".format(
+            original_argv)
+        self.install_kernel(kernel, name=self.name, user=self.user,
+                            replace=self.replace, prefix=self.prefix)
+
+
+
 def main(argv=sys.argv):
     mod = argv[1]
     if mod in {'-h', '--help'}:
