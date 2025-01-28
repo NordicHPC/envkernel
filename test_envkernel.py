@@ -325,7 +325,7 @@ def test_run_venv(d):
 
     def test_exec(_file, _args):
         assert pjoin(PATH, 'bin') in os.environ['PATH'].split(':')
-    kern = install(d, "conda %s"%PATH)
+    kern = install(d, "virtualenv %s"%PATH)
     run(d, kern, test_exec)
 
 # Requires lmod installed... and a module to exist
