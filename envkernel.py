@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import textwrap
 
 LOG = logging.getLogger('envkernel')
 LOG.setLevel(logging.INFO)
@@ -242,11 +243,12 @@ class envkernel():
                 user=user, replace=replace, prefix=prefix)
 
         LOG.info("")
+        LOG.info("  Kernel command: %s", kernel['argv'])
         try:
-            LOG.info("  Kernel saved to {}".format(jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(name).resource_dir))
+            LOG.info("  Success: Kernel saved to {}".format(jupyter_client.kernelspec.KernelSpecManager().get_kernel_spec(name).resource_dir))
         except jupyter_client.kernelspec.NoSuchKernel:
             LOG.info("  Note: Kernel not detected with current search path.")
-        LOG.info("  Command line: %s", kernel['argv'])
+        #LOG.info("  Kernel file:\n%s", textwrap.indent(json.dumps(kernel, sort_keys=True, indent=1), '    '))
 
     def run(self):
         """Hook that gets run before kernel invoked"""
@@ -322,11 +324,13 @@ class conda(envkernel):
         args, unknown_args = parser.parse_known_args(self.argv)
 
         kernel = self.get_kernel()
+        path = args.path
+        path = os.path.abspath(path)
         kernel['argv'] = [
             os.path.realpath(sys.argv[0]),
             self.__class__.__name__, 'run',
             *unknown_args,
-            args.path,
+            path,
             '--',
             *kernel['argv'],
         ]
@@ -334,9 +338,33 @@ class conda(envkernel):
             kernel['display_name'] = "{} ({}, {})".format(
             os.path.basename(args.path.strip('/')),
             self.__class__.__name__,
-            args.path)
+            path)
+        if args.path != 'TESTTARGET':  # un-expanded
+            if not os.path.exists(path):
+                print(self.notfound_message%(self.__class__.__name__, path))
+                LOG.critical("ERROR: %s does not exist: %s", self.__class__.__name__, path)
+                sys.exit(1)
+            if not os.path.exists(pjoin(path, 'bin')):
+                print(self.notfound_message%(self.__class__.__name__, path+'/bin'))
+                LOG.critical("ERROR: %s bin does not exist: %s/bin", self.__class__.__name__, path)
+                sys.exit(1)
         self.install_kernel(kernel, name=self.name, user=self.user,
                             replace=self.replace, prefix=self.prefix)
+
+    notfound_message = """\
+ERROR: %s path does not exist: %s
+
+You need to give a path to the environment, not just the name.  (A
+relative path gets expanded to an absolute path.)
+
+For conda, you can get this from:
+  conda env list
+
+If it's a conda environment and it is activated, you can use
+$CONDA_PREFIX like such:
+  envkernel conda [other arguments] $CONDA_PREFIX
+"""
+
 
     def run(self):
         """load modules and run:
@@ -385,6 +413,12 @@ class virtualenv(conda):
             os.environ['PS1'] = "(venv3) " + os.environ['PS1']
 
         self.execvp(rest[0], rest)
+    notfound_message = """\
+ERROR: %s path does not exist: %s
+
+You need to give a path to the environment, not just the name.  A
+relative path gets expanded to an absolute path.
+"""
 
 
 
@@ -533,12 +567,13 @@ class singularity(envkernel):
         LOG.debug('setup: remaining args: %s', unknown_args)
 
         kernel = self.get_kernel()
+        image = os.path.abspath(args.image)
         kernel['argv'] = [
             os.path.realpath(sys.argv[0]),
             'singularity', 'run',
             '--connection-file', '{connection_file}',
             #*[ '--mount={}'.format(x) for x in args.mount],
-            args.image,
+            image,
             *unknown_args,
             '--',
             *kernel['argv'],

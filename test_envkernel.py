@@ -94,13 +94,13 @@ def is_sublist(list_, sublist):
 
 @all_modes()
 def test_basic(d, mode):
-    kern = install(d, "%s MOD1"%mode)
+    kern = install(d, "%s TESTTARGET"%mode)
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == [mode, 'run']
 
 @all_modes()
 def test_display_name(d, mode):
-    kern = install(d, "%s --display-name=AAA MOD1"%mode)
+    kern = install(d, "%s --display-name=AAA TESTTARGET"%mode)
     assert kern['kernel']['display_name'] == 'AAA'
 
 @all_modes(['conda'])
@@ -108,7 +108,7 @@ def test_template(d, mode):
     os.environ['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
     subprocess.call("python -m ipykernel install --name=aaa-ipy --display-name=BBB --prefix=%s"%d, shell=True)
     #os.environ['ENVKERNEL_TESTPATH'] = os.path.join(d, 'share/jupyter/kernels')
-    kern = install(d, "%s --kernel-template aaa-ipy MOD1"%mode)
+    kern = install(d, "%s --kernel-template aaa-ipy TESTTARGET"%mode)
     assert kern['kernel']['display_name'] == 'BBB'
 
 @all_modes(['conda'])
@@ -118,7 +118,7 @@ def test_template_copyfiles(d, mode):
     f = open(pjoin(d, 'share/jupyter/kernels/', 'aaa-ipy', 'A.txt'), 'w')
     f.write('LMNO')
     f.close()
-    kern = install(d, "%s --kernel-template aaa-ipy MOD1"%mode)
+    kern = install(d, "%s --kernel-template aaa-ipy TESTTARGET"%mode)
     assert os.path.exists(pjoin(kern['dir'], 'A.txt'))
     assert open(pjoin(kern['dir'], 'A.txt')).read() == 'LMNO'
 
@@ -127,10 +127,10 @@ def test_template_make_path_relative(d, mode):
     os.environ['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
     subprocess.call("python -m ipykernel install --name=aaa-ipy --display-name=BBB --prefix=%s"%d, shell=True)
     # First test it without, ensure it has the full path
-    kern = install(d, "%s --kernel-template aaa-ipy MOD1"%mode)
+    kern = install(d, "%s --kernel-template aaa-ipy TESTTARGET"%mode)
     assert kern['k'][0] != 'python' # This is an absolete path
     # Now test it with --kernel-make-path-relative and ensure it's relative
-    kern = install(d, "%s --kernel-template aaa-ipy --kernel-make-path-relative MOD1"%mode)
+    kern = install(d, "%s --kernel-template aaa-ipy --kernel-make-path-relative TESTTARGET"%mode)
     assert kern['k'][0] == 'python' # This is an absolete path
 
 def test_help():
@@ -148,7 +148,7 @@ def test_logging(d, caplog):
     Run first without -v and make sure some stuff isn't printed.
     Then, run with -v and ensure that the argument processing is output.
     """
-    cmd = "python3 -m envkernel lmod --name=ABC --display-name=AAA MOD1 --prefix=%s"%d
+    cmd = "python3 -m envkernel lmod --name=ABC --display-name=AAA LMOD --prefix=%s"%d
     print(d)
     env = os.environ.copy()
     env['JUPYTER_PATH'] = pjoin(d, 'share/jupyter')
@@ -160,7 +160,7 @@ def test_logging(d, caplog):
     print(stdout)
     assert 'Namespace' not in stdout
     assert 'kernel-specific' not in stdout
-    assert 'Command line:' in stdout
+    assert 'Kernel command:' in stdout
     # Now test verbose (should have some debugging info)
     p = subprocess.Popen(cmd+' -v', env=env,
                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -169,14 +169,14 @@ def test_logging(d, caplog):
     #print(stdout)
     assert 'Namespace' in stdout
     assert 'kernel-specific' in stdout
-    assert 'Command line:' in stdout
+    assert 'Kernel command:' in stdout
 
 def test_umask(d):
     orig_umask = os.umask(0)
     # Test multiple umasks, and kerneldir + kernel.json
     for umask in [0, 0o022]:
         os.umask(umask)
-        kern = install(d, "lmod MOD1")
+        kern = install(d, "lmod TESTTARGET")
         assert os.stat(kern['dir']).st_mode & 0o777  ==  0o777&(~umask)
         assert os.stat(pjoin(kern['dir'], 'kernel.json')).st_mode & 0o777  ==  0o666&(~umask)
     os.umask(orig_umask)
@@ -184,22 +184,22 @@ def test_umask(d):
 
 @all_modes()
 def test_set_python(d, mode):
-    kern = install(d, "%s --python=AAA MOD1"%mode)
+    kern = install(d, "%s --python=AAA TESTTARGET"%mode)
     assert kern['k'][0] == 'AAA'
 
 @all_modes()
 def test_set_kernel_cmd(d, mode):
-    kern = install(d, "%s --kernel-cmd='a b c d' MOD1"%mode)
+    kern = install(d, "%s --kernel-cmd='a b c d' TESTTARGET"%mode)
     assert kern['k'] == ['a', 'b', 'c', 'd']
 
 @all_modes()
 def test_language(d, mode):
-    kern = install(d, "%s --language=AAA MOD1"%mode)
+    kern = install(d, "%s --language=AAA TESTTARGET"%mode)
     assert kern['kernel']['language'] == 'AAA'
 
 @all_modes()
 def test_env(d, mode):
-    kern = install(d, "%s --env=AAA=BBB --env=CCC=DDD MOD1"%mode)
+    kern = install(d, "%s --env=AAA=BBB --env=CCC=DDD TESTTARGET"%mode)
     assert kern['kernel']['env']['AAA'] == 'BBB'
     assert kern['kernel']['env']['CCC'] == 'DDD'
 
@@ -234,28 +234,28 @@ def test_recursive_run(d):
 @all_modes()
 def test_default_language(d, mode):
     # default language is ipykernel
-    kern = install(d, "%s MOD1"%mode)
+    kern = install(d, "%s TESTTARGET"%mode)
     assert kern['kernel']['language'] == 'python'
     assert kern['k'][0] == 'python'
     assert kern['k'][1:4] == ['-m', 'ipykernel_launcher', '-f']
 
 @all_modes()
 def test_ipykernel(d, mode):
-    kern = install(d, "%s --kernel=ipykernel MOD1"%mode)
+    kern = install(d, "%s --kernel=ipykernel TESTTARGET"%mode)
     assert kern['kernel']['language'] == 'python'
     assert kern['k'][0] == 'python'
     assert kern['k'][1:4] == ['-m', 'ipykernel_launcher', '-f']
 
 @all_modes()
 def test_ir(d, mode):
-    kern = install(d, "%s --kernel=ir MOD1"%mode)
+    kern = install(d, "%s --kernel=ir TESTTARGET"%mode)
     assert kern['kernel']['language'] == 'R'
     assert kern['k'][0] == 'R'
     assert kern['k'][1:5] == ['--slave', '-e', 'IRkernel::main()', '--args']
 
 @all_modes()
 def test_imatlab(d, mode):
-    kern = install(d, "%s --kernel=imatlab MOD1"%mode)
+    kern = install(d, "%s --kernel=imatlab TESTTARGET"%mode)
     assert kern['kernel']['language'] == 'matlab'
     assert kern['k'][0].endswith('python')
     assert kern['k'][1:4] == ['-m', 'imatlab', '-f']
@@ -277,29 +277,29 @@ def test_lmod_purge(d):
     assert kern['ek'][-1] == 'MOD3'
 
 def test_conda(d):
-    kern = install(d, "conda /PATH/BBB")
+    kern = install(d, "conda TESTTARGET")
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == ['conda', 'run']
-    assert kern['ek'][-1] == '/PATH/BBB'
+    assert kern['ek'][-1].endswith('TESTTARGET')
 
 def test_virtualenv(d):
-    kern = install(d, "virtualenv /PATH/CCC")
+    kern = install(d, "virtualenv TESTTARGET")
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == ['virtualenv', 'run']
-    assert kern['ek'][-1] == '/PATH/CCC'
+    assert kern['ek'][-1].endswith('TESTTARGET')
 
 def test_docker(d):
-    kern = install(d, "docker --some-arg=AAA IMAGE1")
+    kern = install(d, "docker --some-arg=AAA TESTIMAGE")
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == ['docker', 'run']
-    assert kern['ek'][-2] == 'IMAGE1'
+    assert kern['ek'][-2] == 'TESTIMAGE'
     assert '--some-arg=AAA' in kern['ek']
 
 def test_singularity(d):
-    kern = install(d, "singularity --some-arg=AAA /PATH/TO/IMAGE2")
+    kern = install(d, "singularity --some-arg=AAA /PATH/TO/TESTIMAGE2")
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == ['singularity', 'run']
-    assert kern['ek'][-2] == '/PATH/TO/IMAGE2'
+    assert kern['ek'][-2] == '/PATH/TO/TESTIMAGE2'
     assert '--some-arg=AAA' in kern['ek']
 
 
@@ -369,7 +369,7 @@ def test_run_singularity(d):
     def test_exec(_file, argv):
         assert argv[0] == 'singularity'
         assert '--some-arg=AAA' in argv
-        assert 'IMAGE' in argv
+        assert os.path.join(os.getcwd(), 'IMAGE') in argv
     kern = install(d, "singularity --some-arg=AAA IMAGE")
     run(d, kern, test_exec)
 
