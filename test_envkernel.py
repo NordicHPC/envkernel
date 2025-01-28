@@ -277,16 +277,16 @@ def test_lmod_purge(d):
     assert kern['ek'][-1] == 'MOD3'
 
 def test_conda(d):
-    kern = install(d, "conda TESTTARGET")
+    kern = install(d, "conda test-data/env")
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == ['conda', 'run']
-    assert kern['ek'][-1].endswith('TESTTARGET')
+    assert kern['ek'][-1].endswith('test-data/env')
 
 def test_virtualenv(d):
-    kern = install(d, "virtualenv TESTTARGET")
+    kern = install(d, "virtualenv test-data/env")
     #assert kern['argv'][0] == 'envkernel'  # defined above
     assert kern['ek'][1:3] == ['virtualenv', 'run']
-    assert kern['ek'][-1].endswith('TESTTARGET')
+    assert kern['ek'][-1].endswith('test-data/env')
 
 def test_docker(d):
     kern = install(d, "docker --some-arg=AAA TESTIMAGE")
