@@ -422,6 +422,11 @@ relative path gets expanded to an absolute path.
 
 
 
+class venv(virtualenv):
+    pass
+
+
+
 class docker(envkernel):
     def setup(self):
         super().setup()

@@ -26,7 +26,7 @@ TEST_CONNECTION_FILE = """\
   "kernel_name": ""
 }
 """
-ALL_MODULES = ["conda", "virtualenv", "lmod", "docker", "singularity"]
+ALL_MODULES = ["conda", "virtualenv", "venv", "lmod", "docker", "singularity"]
 
 
 def install(d, argv, name='testkernel'):
