@@ -636,7 +636,7 @@ class singularity(envkernel):
         # In Singularity 2.4 at least, --pwd does not work when used
         # with --contain.  This manually does it using a bash cd + exec.
         if ('-c' in unknown_args or '--contain' in unknown_args ) and args.pwd:
-            rest = ["bash", "-c", "cd %s"%os.getcwd() + " ; exec "+(" ".join(shlex.quote(x) for x in rest))]
+            rest = ["bash", "-c", "cd \"%s\""%os.getcwd() + " && exec "+(" ".join(shlex.quote(x) for x in rest))]
 
         cmd = [
             'singularity',
